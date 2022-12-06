@@ -31,6 +31,7 @@ def message_img(client, message, say, context):
         else:
             usingUser = message['user']
             prompt = context['matches'][0]
+            say(f"<@{usingUser}> さんの発言 `{prompt}` に対応します。")
             response = chatbot.get_chat_response(prompt)
             print(f"prompt: `{prompt}`")
             message = response['message']
