@@ -18,6 +18,8 @@ chatbot.refresh_session()
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化します
 app = App(token=os.getenv('SLACK_BOT_TOKEN'))
 
+usingUser = None
+
 @app.message(re.compile(r"^!gpt (.*)$"))
 def message_img(client, message, say, context):
     global usingUser
@@ -32,6 +34,7 @@ def message_img(client, message, say, context):
             message = response['message']
             print(f"response: `{response}`")
             say(message)
+            usingUser = None
     except Exception as e:
         usingUser = None
         print(e)
