@@ -46,7 +46,7 @@ SLACK_APP_TOKEN=xapp-9999999-9999999
 ```sh
 pip3 install python-dotenv --upgrade
 pip3 install revChatGPT --upgrade
-pip install slack_bolt --upgrade
+pip3 install slack_bolt --upgrade
 pip3 list # python-dotenv と revChatGPT と slack-bolt と slack-sdkを確認
 python3 app.py
 ```
