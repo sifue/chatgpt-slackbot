@@ -32,10 +32,10 @@ def message_img(client, message, say, context):
             usingUser = message['user']
             prompt = context['matches'][0]
             say(f"<@{usingUser}> さんの発言 `{prompt}` に対応します。")
-            response = chatbot.get_chat_response(prompt)
             print(f"prompt: `{prompt}`")
+            response = chatbot.get_chat_response(prompt)
+            print(response)
             message = response['message']
-            print(f"response: `{response}`")
             say(message)
             usingUser = None
     except Exception as e:
