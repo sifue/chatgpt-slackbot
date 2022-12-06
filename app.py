@@ -20,14 +20,20 @@ app = App(token=os.getenv('SLACK_BOT_TOKEN'))
 
 @app.message(re.compile(r"^!gpt (.*)$"))
 def message_img(client, message, say, context):
+    global usingUser
     try:
-        prompt = context['matches'][0]
-        response = chatbot.get_chat_response(prompt)
-        print(f"prompt: `{prompt}`")
-        message = response['message']
-        print(f"response: `{response}`")
-        say(message)
+        if usingUser is not None:
+            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        else:
+            usingUser = message['user']
+            prompt = context['matches'][0]
+            response = chatbot.get_chat_response(prompt)
+            print(f"prompt: `{prompt}`")
+            message = response['message']
+            print(f"response: `{response}`")
+            say(message)
     except Exception as e:
+        usingUser = None
         print(e)
         say(f"エラーが発生しました。やり方を変えて試してみてください。 Error: {e}")
 
