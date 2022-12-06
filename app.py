@@ -1,6 +1,7 @@
 from revChatGPT.revChatGPT import Chatbot
 import os
 import re
+import time
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
@@ -11,9 +12,10 @@ config = {
     "password": os.getenv('PASSWORD')
 }
 
-global chatbot
 chatbot = Chatbot(config, conversation_id=None)
 chatbot.refresh_session()
+
+time.sleep(3) # ChatGPTを待つ
 
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化します
 app = App(token=os.getenv('SLACK_BOT_TOKEN'))
@@ -22,8 +24,8 @@ usingUser = None
 
 @app.message(re.compile(r"^!gpt (.*)$"))
 def message_img(client, message, say, context):
-    global usingUser
     try:
+        global usingUser
         if usingUser is not None:
             say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
         else:
