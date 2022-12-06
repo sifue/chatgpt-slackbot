@@ -33,7 +33,15 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOT
 ### インストール方法
 Python3.6.8以上で動作を確認済み。
 
-.env ファイルを実行フォルダ内に作成して以下を記述
+.env ファイルを実行フォルダ内に作成して、自分のクレデンシャル情報を記述
+
+```
+EMAIL=xxx@example.com
+PASSWORD=password99999
+SLACK_BOT_TOKEN=xoxb-9999999
+SLACK_APP_TOKEN=xapp-9999999-9999999
+```
+
 
 ```sh
 pip3 install python-dotenv --upgrade
