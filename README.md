@@ -8,6 +8,8 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOT
 - AIとの会話のセッションをリセット: !gpt-rs
 - 使い方を表示: !gpt-help
 
+長く会話を行わせていると、長い会話セッションの影響からエラーを出し始めるので、その際は会話のセッションをリセットするようにしてください。
+
 ## 環境構築
 ### OpenAIのアカウントの用意 (ID/PASSWOARD形式)
 [OpenAI Chat](https://chat.openai.com/)にアクセスしてID/PASSWOARD形式でアカウント作成。
