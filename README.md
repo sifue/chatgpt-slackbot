@@ -14,19 +14,7 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOT
 ### OpenAIのアカウントの用意 (ID/PASSWOARD形式)
 [OpenAI Chat](https://chat.openai.com/)にアクセスしてID/PASSWOARD形式でアカウント作成。
 
-ライブラリ、ChatGPTはスクレイピングを行なっています。なお[OpenAIの利用規約](https://openai.com/terms/)によると明確にスクレイピングは禁止されていませんが、
-
-原文:
-> OpenAI reserves the right to investigate and take appropriate legal action against anyone who, in OpenAI’s sole discretion, violates this provision, including without limitation, removing the offending content from the Site, suspending or terminating the account of such violators and reporting you to the law enforcement authorities. You agree to not use the Site to:  
-> (中略)  
-> (vii) in the sole judgment of OpenAI, is objectionable or which restricts or inhibits any other person from using or enjoying the Site, or which may expose OpenAI or its users to any harm or liability of any type;  
-
-DeepL翻訳:
-> OpenAI は、OpenAI の単独の裁量により、本規定に違反する者を調査し、適切な法的措置を取る権利を有します。これには、本サイトからの違反コンテンツの削除、当該違反者のアカウントの停止または終了、法執行当局への報告などが含まれますが、これらに限定されるものではありません。お客様は、本サイトを以下の目的で使用しないことに同意するものとします。  
-> (中略) 
-> (vii) OpenAI の単独の判断で、好ましくない、他者による本サイトの利用や楽しみを制限または抑制する、あるいは OpenAI やそのユーザがいかなる種類の損害や責任にもさらされる可能性があると判断される場合。  
-
-以上の行為に該当する可能性があり、アカウントの停止などをされる可能性がありますが、その点はMIT LICNESEの免責に則り自己責任でご利用ください。
+ライブラリ、ChatGPTはスクレイピングを行なっています。なお[OpenAIの利用規約](https://openai.com/terms/)によるスクレイピングが禁止されており、アカウントの停止などをされる可能性がありますが、その点はMIT LICNESEの免責に則り自己責任でご利用ください。
 
 ### Slack Botのトークンの用意
 [Bolt 入門ガイド](https://slack.dev/bolt-python/ja-jp/tutorial/getting-started)に準拠。
