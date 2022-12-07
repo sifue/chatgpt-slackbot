@@ -43,10 +43,26 @@ def message_img(client, message, say, context):
         print(e)
         say(f"エラーが発生しました。やり方を変えて試してみてください。 Error: {e}")
 
+@app.message(re.compile(r"^!gpt-rs$"))
+def message_help(client, message, say, context):
+    try:
+        global usingUser
+        if usingUser is not None:
+            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        else:
+            usingUser = message['user']
+            print(f"<@{usingUser}> さんが会話のセッションをリセットしました。")
+            chatbot.refresh_session()
+            say(f"会話のセッションをリセットしました。")
+    except Exception as e:
+        usingUser = None
+        print(e)
+        say(f"エラーが発生しました。やり方を変えて試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context):
-    say("`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます")
+    say("`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。\n" 
+    + "`!gpt-rs` 会話のセッションをリセットします。\n")
 
 @app.event("message")
 def handle_message_events(body, logger):
