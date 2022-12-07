@@ -53,3 +53,11 @@ python3 app.py
 ```
 
 以上で起動。tmuxなどのセッションを維持するツールで起動することを前提としている。
+
+なお、revChatGPT はアップデートがよくあるため、
+
+```sh
+pip3 install revChatGPT --upgrade
+```
+
+は時折実行して再起動する必要がある。操作確認バージョンは、revChatGPT v0.0.29

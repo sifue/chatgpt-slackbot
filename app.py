@@ -54,6 +54,7 @@ def message_help(client, message, say, context):
             print(f"<@{usingUser}> さんが会話のセッションをリセットしました。")
             chatbot.refresh_session()
             say(f"会話のセッションをリセットしました。")
+            usingUser = None
     except Exception as e:
         usingUser = None
         print(e)
