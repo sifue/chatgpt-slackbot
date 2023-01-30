@@ -4,6 +4,8 @@ services:
     restart: always
     build: .
     container_name: chatgpt-slackbot${NAME_SUFFIX}
+    env_file:
+      - .env
     working_dir: '/root/'
     tty: true
     volumes:
