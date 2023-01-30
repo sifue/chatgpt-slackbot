@@ -9,9 +9,10 @@ ChatGPTのAPIがリリースされ次第ChatGPTのAPIに切り替える予定。
 
 ## ボットの使い方
 - AIとの会話: !gpt \[会話内容\]
+- AIとの会話のセッションをリセット: !gpt-rs
 - 使い方を表示: !gpt-help
 
-セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。
+セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。セッションリセットでそのユーザーIDのサフィックスを変えて変更する。
 
 ## 環境構築
 ### OpenAIのAPI Token(SECRET KEY)とOrganazation IDを取得。
@@ -46,7 +47,10 @@ ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
 SLACK_BOT_TOKEN=xoxb-9999999
 SLACK_APP_TOKEN=xapp-9999999-9999999
+NAME_SUFFIX=-main
 ```
+
+NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。
 
 あとは以下を実行してイメージをビルド&実行。
 

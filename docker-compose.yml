@@ -3,7 +3,7 @@ services:
   python3:
     restart: always
     build: .
-    container_name: 'chatgpt-slackbot'
+    container_name: chatgpt-slackbot${NAME_SUFFIX}
     working_dir: '/root/'
     tty: true
     volumes:
