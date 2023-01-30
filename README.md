@@ -42,8 +42,8 @@ Python3.9.6以上で動作を確認済み。
 .env ファイルを実行フォルダ内に作成して、自分のクレデンシャル情報を記述
 
 ```
-EMAIL=xxx@example.com
-PASSWORD=password99999
+ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
 SLACK_BOT_TOKEN=xoxb-9999999
 SLACK_APP_TOKEN=xapp-9999999-9999999
 ```
