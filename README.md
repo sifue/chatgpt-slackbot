@@ -61,7 +61,7 @@ docker compose --env-file ./opt/.env up -d --build
 以上で起動。
 
 ```
-docker compose down
+docker compose --env-file ./opt/.env down
 ```
 
 で停止。
