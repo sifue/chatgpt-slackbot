@@ -1,5 +1,5 @@
-NAME_SUFFIX=-main
 ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
 SLACK_BOT_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
 SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
+NAME_SUFFIX=-main
