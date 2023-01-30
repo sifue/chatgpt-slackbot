@@ -74,8 +74,7 @@ def message_help(client, message, say, context):
 
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context):
-    say("`!gpt [ボットに伝えたいメッセージ]` の形式でGPT-3のAIと会話できます。" +
-    "厳密にはChatGPTではなくGPT-3のモデルと会話します。\n" + 
+    say("`!gpt [ボットに伝えたいメッセージ]` の形式でGPT-3のAIと会話できます。\n"  + 
     "`!gpt-rs` 会話のセッションをリセットします。実際はユーザーIDを変更します。\n")
 
 @app.event("message")
