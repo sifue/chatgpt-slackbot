@@ -1,4 +1,4 @@
-# ChatGPT Slackbot
+# ChatGPT Slackbot (使っているのはGPT-3)
 **このChatGPT Slackbotは現状ChatGPT APIを使えておらずGPT-3で動作しています！**
 
 Slackを通じて会話人工知能のGPT-3を利用するためのBOT。
