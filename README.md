@@ -55,7 +55,7 @@ NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名が
 あとは以下を実行してイメージをビルド&実行。
 
 ```
-docker compose up -d --build
+docker compose --env-file ./opt/.env up -d --build
 ```
 
 以上で起動。
