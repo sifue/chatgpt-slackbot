@@ -1,20 +1,21 @@
 # ChatGPT Slackbot
-Slackを通じて会話人工知能のChatGPTを利用するためのBOT
-環境構築にはOpenAIのアカウント及びSlackのBoltのアプリケーショントークンが必要
-ライブラリには[acheong08/ChatGPT](https://github.com/acheong08/ChatGPT)を利用
+**このChatGPT Slackbotは現状ChatGPT APIを使えておらずGPT-3で動作しています！**
+
+Slackを通じて会話人工知能のGPT-3を利用するためのBOT。
+ChatGPTのAPIはまだ解放されていないので、代わりにOpenAI APIのGPT-3のAPIを利用。
+ChatGPTのAPIがリリースされ次第ChatGPTのAPIに切り替える予定。
+
+環境構築にはOpenAIのAPIトークン及びSlackのBoltのアプリケーショントークンが必要。
 
 ## ボットの使い方
 - AIとの会話: !gpt \[会話内容\]
-- AIとの会話のセッションをリセット: !gpt-rs
 - 使い方を表示: !gpt-help
 
-長く会話を行わせていると、長い会話セッションの影響からエラーを出し始めるので、その際は会話のセッションをリセットするようにしてください。
+セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。
 
 ## 環境構築
-### OpenAIのアカウントの用意 (ID/PASSWOARD形式)
-[OpenAI Chat](https://chat.openai.com/)にアクセスしてID/PASSWOARD形式でアカウント作成。
-
-ライブラリ、ChatGPTはスクレイピングを行なっています。なお[OpenAIの利用規約](https://openai.com/terms/)によるスクレイピングが禁止されており、アカウントの停止などをされる可能性がありますが、その点はMIT LICNESEの免責に則り自己責任でご利用ください。
+### OpenAIのAPI Token(SECRET KEY)とOrganazation IDを取得。
+[OpenAI API Keys](https://beta.openai.com/account/api-keys)にアクセスしてアカウント作成の後、SECRET KEYとOrganization IDを取得。
 
 ### Slack Botのトークンの用意
 [Bolt 入門ガイド](https://slack.dev/bolt-python/ja-jp/tutorial/getting-started)に準拠。
@@ -47,24 +48,24 @@ SLACK_BOT_TOKEN=xoxb-9999999
 SLACK_APP_TOKEN=xapp-9999999-9999999
 ```
 
+あとは以下を実行してイメージをビルド&実行。
 
-```sh
-pip3 install python-dotenv --upgrade
-pip3 install revChatGPT --upgrade
-pip3 install slack_bolt --upgrade
-pip3 list # python-dotenv と revChatGPT と slack-bolt と slack-sdkを確認
-python3 app.py
+```
+docker compose up -d --build
 ```
 
-以上で起動。tmuxなどのセッションを維持するツールで起動することを前提としている。
+以上で起動。
 
-なお、revChatGPT はアップデートがよくあるため、
-
-```sh
-pip3 install revChatGPT --upgrade
+```
+docker compose down
 ```
 
-は時折実行して再起動する必要がある。操作確認バージョンは、revChatGPT v0.0.29
+で停止。
+
+```
+docker compose logs
+```
+でログ確認。
 
 ## LICNESE
 MIT
