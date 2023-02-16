@@ -20,7 +20,7 @@ app = App(token=os.getenv('SLACK_BOT_TOKEN'))
 usingUser = None
 userNameSuffix = str(time.time())
 
-@app.message(re.compile(r"^!gpt (.*)$"))
+@app.message(re.compile(r"^!gpt ((.|\s)*)$"))
 def message_img(client, message, say, context):
     try:
         global usingUser
@@ -29,7 +29,7 @@ def message_img(client, message, say, context):
         else:
             usingUser = message['user']
             prompt = context['matches'][0]
-            say(f"<@{usingUser}> さんの発言 `{prompt}` に対応します。")
+            say(f"<@{usingUser}> さんの発言\n```\n{prompt}\n```\nに対応します。")
             print(f"prompt: `{prompt}`")
 
             response = openai.Completion.create(
