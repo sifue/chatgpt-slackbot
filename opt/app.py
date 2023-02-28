@@ -80,8 +80,8 @@ def message_help(client, message, say, context):
 
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context):
-    say("`!gpt [ボットに伝えたいメッセージ]` の形式でGPT-3のAIと会話できます。\n"  + 
-    "`!gpt-rs [ユーザーが何か] [AIが何か] [シチュエーション]` \n")
+    say("`!gpt [ボットに伝えたいメッセージ]` の形式でGPT-3のAIと会話。\n"  + 
+    "`!gpt-rs [ユーザーが何か] [AIが何か] [シチュエーション]` の形式でシチュエーションをリセット。\n")
 
 @app.event("message")
 def handle_message_events(body, logger):
