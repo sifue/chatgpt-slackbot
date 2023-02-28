@@ -2,14 +2,14 @@
 **このChatGPT Slackbotは現状ChatGPT APIを使えておらずGPT-3で動作しています！**
 
 Slackを通じて会話人工知能のGPT-3を利用するためのBOT。
-ChatGPTのAPIはまだ解放されていないので、代わりにOpenAI APIのGPT-3のAPIを利用。
+ChatGPTのAPIはまだ解放されていないので、代わりにOpenAI APIのGPT-3のAPIと[gpt3-contextual](https://github.com/uezo/gpt3-contextual)を利用。
 ChatGPTのAPIがリリースされ次第ChatGPTのAPIに切り替える予定。
 
 環境構築にはOpenAIのAPIトークン及びSlackのBoltのアプリケーショントークンが必要。
 
 ## ボットの使い方
 - AIとの会話: !gpt \[会話内容\]
-- AIとの会話のセッションをリセット: !gpt-rs
+- AIとの会話のセッションをリセット: !gpt-rs \[ユーザーが何か\] \[AIが何か\] \[シチュエーション\]
 - 使い方を表示: !gpt-help
 
 セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。セッションリセットでそのユーザーIDのサフィックスを変えて変更する。
