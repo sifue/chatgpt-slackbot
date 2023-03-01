@@ -12,7 +12,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 import os
 import re
-import time
 
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化
 app = App(token=os.getenv('SLACK_BOT_TOKEN'))
@@ -102,7 +101,6 @@ def message_help(client, message, say, context):
             historyDict[historyIdetifier] = []
 
             print(f"<@{usingUser}> さんの <#{usingChannel}> での会話の履歴をリセットしました。")
- 
             say(f"<@{usingUser}> さんの <#{usingChannel}> での会話の履歴をリセットしました。")
             usingUser = None
     except Exception as e:

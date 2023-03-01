@@ -16,7 +16,6 @@ RUN pip install --upgrade setuptools
 
 RUN python -m pip install python-dotenv --upgrade
 RUN python -m pip install openai --upgrade
-RUN python -m pip install gpt3-contextual --upgrade
 RUN python -m pip install slack_bolt --upgrade
 
 CMD cd /root/opt/ && python app.py
