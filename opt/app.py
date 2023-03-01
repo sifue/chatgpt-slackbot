@@ -111,7 +111,7 @@ def message_help(client, message, say, context):
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context):
     say(f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴を{maxHistoryCount}個前まで参照します。\n"  + 
-    "`!gpt-rs` 利用しているチャンネルにおける会話の履歴ををリセットします。\n")
+    "`!gpt-rs` 利用しているチャンネルにおける会話の履歴をリセットします。\n")
 
 @app.event("message")
 def handle_message_events(body, logger):
