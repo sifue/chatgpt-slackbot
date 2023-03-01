@@ -5,12 +5,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import openai
 
-import asyncio
-from gpt3contextual import ContextualChat, ContextManager
-
-contextManager = ContextManager()
-contextualChat = ContextualChat(os.getenv("OPENAI_API_KEY"), context_manager=contextManager)
+openai.organization = os.getenv("ORGANAZTION_ID")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 import os
 import re
@@ -20,7 +18,6 @@ import time
 app = App(token=os.getenv('SLACK_BOT_TOKEN'))
 
 usingUser = None
-
 historyDict = {} # key: historyIdetifier value: historyArray ex. [{"role": "user", "content": prompt}]
 maxHistoryCount = 10 #会話履歴を参照する履歴の数の設定
 
@@ -89,16 +86,7 @@ def message_gpt(client, message, say, context):
         print(e)
         say(f"エラーが発生しました。やり方を変えて試してみてください。 Error: {e}")
 
-async def chat(user, prompt, say):
-    """ContextualChatを非同期実行するための関数"""
-    global contextualChat
-    response, returnPrompt, completion = await contextualChat.chat(user, prompt)
-    say(response)
-
-    global usingUser
-    usingUser = None
-
-@app.message(re.compile(r"^!gpt-rs([ ]?)([^ ]*)([ ]?)([^ ]*)([ ]?)([^ ]*)$"))
+@app.message(re.compile(r"^!gpt-rs$"))
 def message_help(client, message, say, context):
     try:
         global usingUser
@@ -114,8 +102,8 @@ def message_help(client, message, say, context):
             historyDict[historyIdetifier] = []
 
             print(f"<@{usingUser}> さんの <#{usingChannel}> での会話の履歴をリセットしました。")
+ 
             say(f"<@{usingUser}> さんの <#{usingChannel}> での会話の履歴をリセットしました。")
-
             usingUser = None
     except Exception as e:
         usingUser = None
