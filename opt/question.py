@@ -39,7 +39,11 @@ def sayAnswer(client, message, say, usingUser, question):
     print(f"queryGPTResponseContent: {queryGPTResponseContent}")
     matches = re.match(
         r'^(.|\s)*##########(.*)##########(.|\s)*$', queryGPTResponseContent)
-    query = matches.group(2)
+    query = ""
+    if matches is None:
+        query = question # 検索クエリがない場合は質問そのものを検索クエリにする
+    else:
+        query = matches.group(2)
 
     print(f"query: `{query}`")
     searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
