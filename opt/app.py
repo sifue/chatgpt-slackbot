@@ -134,7 +134,7 @@ def message_user_analysis(client, message, say, context):
             say(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近の発言より分析します。")
 
             searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
-                                                    query=f"from:{targetUser}", count=20, highlight=False)
+                                                    query=f"from:{targetUser}", count=100, highlight=False)
             matches = searchResponse["messages"]["matches"]
 
             if len(matches) == 0:
@@ -143,14 +143,15 @@ def message_user_analysis(client, message, say, context):
 
             prompt = "以下のSlack上の投稿情報からこのユーザーがどのような人物なのか、どのような性格なのか分析して教えてください。\n\n----------------\n\n"
             for match in matches:
-                formatedMessage = f"""
+                if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False and match["channel"]["is_mpim"] == False:
+                    formatedMessage = f"""
 投稿チャンネル: {match["channel"]["name"]}
 投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
 ユーザー名: {match["username"]}
 投稿内容: {match["text"]}
-                """
+                    """
 
-                if len(prompt) + len(formatedMessage) < 4096: # 4096文字以上になったら履歴は追加しない
+                if len(prompt) + len(formatedMessage) < 4096:  # 4096文字以上になったら履歴は追加しない
                     prompt += formatedMessage
 
             usingTeam = message["team"]
