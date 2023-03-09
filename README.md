@@ -2,11 +2,12 @@
 
 Slackを通じて会話人工知能のChatGPTを利用するためのBOTスクリプト。  
 会話の履歴数はデフォルトでは10個前まで参照。ユーザーごと、チャンネルごとに異なる履歴を保持する。
-環境構築にはOpenAIのAPIトークン及びSlackのBoltのアプリケーショントークンが必要。  
+環境構築にはOpenAIのAPIトークンとSlackのBoltのアプリケーショントークン3種が必要。  
 
 ## ボットの使い方
 - AIとの会話: !gpt \[会話内容\]
 - AIとの会話の履歴をリセット: !gpt-rs
+- AIに指定したユーザーの発言からの分析を依頼: !gpt-ua \[@ユーザー名\]
 - 使い方を表示: !gpt-help
 
 セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。
@@ -25,7 +26,11 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 
 #### SLACK_BOT_TOKENで要求するスコープ
 
-- chat:write 
+##### Bot Token Scopes
+- chat:write
+
+##### User Token Scopes
+- search:read
 
 #### Event SubscriptionsのSubscribe to Bot Events で要求するスコープ
 
