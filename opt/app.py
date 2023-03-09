@@ -130,8 +130,8 @@ def message_user_analysis(client, message, say, context):
             usingUser = message["user"]
             targetUser = context["matches"][0]
 
-            print(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近の発言より分析します。")
-            say(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近の発言より分析します。")
+            print(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近のパブリックチャンネルの発言より分析します。")
+            say(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近のパブリックチャンネルの発言より分析します。")
 
             searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                                     query=f"from:{targetUser}", count=100, highlight=False)
@@ -186,7 +186,7 @@ def message_user_analysis(client, message, say, context):
 def message_help(client, message, say, context):
     say(f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴を{maxHistoryCount}個前まで参照します。\n" +
         "`!gpt-rs` 利用しているチャンネルにおける会話の履歴をリセットします。\n" +
-        "`!gpt-ua [@ユーザー名]` 直近のSlackでの発言より、どのようなユーザーであるのかを分析します。\n")
+        "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n")
 
 
 @app.event("message")
