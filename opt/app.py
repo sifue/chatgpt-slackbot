@@ -150,7 +150,7 @@ def message_user_analysis(client, message, say, context):
 投稿内容: {match["text"]}
                 """
 
-                if len(prompt) < 3000: # 3000文字以上になったら履歴は追加しない
+                if len(prompt) + len(formatedMessage) < 4096: # 4096文字以上になったら履歴は追加しない
                     prompt += formatedMessage
 
             usingTeam = message["team"]
