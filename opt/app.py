@@ -1,3 +1,4 @@
+import datetime
 import re
 import openai
 import os
@@ -7,9 +8,9 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
 load_dotenv()
 
+
 openai.organization = os.getenv("ORGANAZTION_ID")
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
 
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
@@ -129,26 +130,24 @@ def message_user_analysis(client, message, say, context):
             usingUser = message["user"]
             targetUser = context["matches"][0]
 
-            print(f"<@{usingUser}> さんの依頼で {targetUser} さんについて分析します。")
-            say(f"<@{usingUser}> さんの依頼で {targetUser} さんのについて分析します。")
+            print(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近の発言より分析します。")
+            say(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近の発言より分析します。")
 
             searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
-                                              query=f"from:{targetUser}", count=20, highlight=False)
+                                                    query=f"from:{targetUser}", count=20, highlight=False)
             matches = searchResponse["messages"]["matches"]
 
             if len(matches) == 0:
                 say(f"{targetUser} さんの発言は見つかりませんでした。")
                 return
 
-            prompt = "以下のSlack上の発言情報からこのユーザーがどのような人なのか分析して教えてください。\n\n----------------\n\n"
+            prompt = "以下のSlack上の投稿情報からこのユーザーがどのような人物なのか、どのような性格なのか分析して教えてください。\n\n----------------\n\n"
             for match in matches:
                 formatedMessage = f"""
-
-                チャンネル: {match["channel"]["name"]}
-                投稿日時: {match["ts"]}
-                投稿者: {match["username"]}
-                投稿内容: {match["text"]}
-
+投稿チャンネル: {match["channel"]["name"]}
+投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
+ユーザー名: {match["username"]}
+投稿内容: {match["text"]}
                 """
                 prompt += formatedMessage
 
@@ -184,7 +183,7 @@ def message_user_analysis(client, message, say, context):
 def message_help(client, message, say, context):
     say(f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴を{maxHistoryCount}個前まで参照します。\n" +
         "`!gpt-rs` 利用しているチャンネルにおける会話の履歴をリセットします。\n" +
-        "`!gpt-ua [@ユーザー名]` 直近のSlackでの発言より、どのようなユーザーであるのか分析します。\n")
+        "`!gpt-ua [@ユーザー名]` 直近のSlackでの発言より、どのようなユーザーであるのかを分析します。\n")
 
 
 @app.event("message")
