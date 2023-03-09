@@ -150,9 +150,9 @@ def message_user_analysis(client, message, say, context):
 ユーザー名: {match["username"]}
 投稿内容: {match["text"]}
                     """
-
-                if len(prompt) + len(formatedMessage) < 4096:  # 4096文字以上になったら履歴は追加しない
-                    prompt += formatedMessage
+                    
+                    if len(prompt) + len(formatedMessage) < 4096:  # 4096文字以上になったら履歴は追加しない
+                        prompt += formatedMessage
 
             usingTeam = message["team"]
             userIdentifier = getUserIdentifier(usingTeam, usingUser)
