@@ -143,7 +143,7 @@ def message_user_analysis(client, message, say, context):
 
             prompt = "以下のSlack上の投稿情報からこのユーザーがどのような人物なのか、どのような性格なのか分析して教えてください。\n\n----------------\n\n"
             for match in matches:
-                if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False and match["channel"]["is_mpim"] == False:
+                if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False and match["channel"]["is_shared"] == False:
                     formatedMessage = f"""
 投稿チャンネル: {match["channel"]["name"]}
 投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
