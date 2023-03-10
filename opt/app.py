@@ -73,14 +73,14 @@ def message_gpt(client, message, say, context):
 
             usingUser = None
     except Exception as e:
+        usingUser = None
+        print(e)
+        say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
         # エラーを発生させた人の会話の履歴をリセットをする
         historyIdetifier = getHistoryIdentifier(
             message["team"], message["channel"], message["user"])
         historyDict[historyIdetifier] = []
-
-        usingUser = None
-        print(e)
-        say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 
 @app.message(re.compile(r"^!gpt-rs$"))
