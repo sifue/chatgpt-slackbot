@@ -1,5 +1,6 @@
 from user_analysis import sayUserAnalysis
 from question import sayAnswer
+from channel_analysis import sayChannelAnalysis
 from util import getHistoryIdentifier, getUserIdentifier
 import re
 import openai
@@ -123,6 +124,21 @@ def message_user_analysis(client, message, say, context):
         print(e)
         say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
+@app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
+def message_channel_analysis(client, message, say, context):
+    try:
+        global usingUser
+        if usingUser is not None:
+            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        else:
+            usingUser = message["user"]
+            sayChannelAnalysis(client,message, say, usingUser, context["matches"][0])
+            usingUser = None
+    except Exception as e:
+        usingUser = None
+        print(e)
+        say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
 def message_question(client, message, say, context):
     try:
@@ -142,8 +158,9 @@ def message_question(client, message, say, context):
 def message_help(client, message, say, context):
     say(f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴を{maxHistoryCount}個前まで参照します。\n" +
         "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +
-        "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" + 
-        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。\n")
+        "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +
+        "`!gpt-ca [#チャンネル名]` パブリックチャンネルの直近の投稿内容から、どのようなチャンネルであるのかを分析します。\n" +
+        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注.精度はあまり高くありません)\n")
 
 @app.event("message")
 def handle_message_events(body, logger):
