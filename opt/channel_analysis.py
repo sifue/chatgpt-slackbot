@@ -19,10 +19,7 @@ def sayChannelAnalysis(client, message, say, usingUser, targetChannel):
                                             query=f"in:{targetChannel}", count=100, highlight=False)
     matches = searchResponse["messages"]["matches"]
 
-    if len(matches) == 0:
-        say(f"{targetChannel} での発言は見つかりませんでした。")
-        return
-
+    count = 0
     prompt = "以下のSlack上のチャンネルの投稿情報から、このチャンネルがどのようなチャンネルなのか分析して教えてください。\n\n----------------\n\n"
     for match in matches:
         if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
@@ -35,7 +32,12 @@ def sayChannelAnalysis(client, message, say, usingUser, targetChannel):
 
             # 指定文字以上になったら履歴は追加しない 上限は4096トークンだが計算できないので適当な値
             if len(prompt) + len(formatedMessage) < 3800:
+                count += 1
                 prompt += formatedMessage
+
+    if len(matches) == 0 or count == 0:
+        say(f"{targetChannel} での発言は見つかりませんでした。")
+        return
 
     usingTeam = message["team"]
     userIdentifier = getUserIdentifier(usingTeam, usingUser)
