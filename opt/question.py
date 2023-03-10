@@ -50,7 +50,7 @@ def sayAnswer(client, message, say, usingUser, question):
                                             query=query, count=100, highlight=False)
     matches = searchResponse["messages"]["matches"]
 
-    prompt = f"「{question}」という質問の答えを、以下のSlack上の「{query}」の検索結果の情報も加味し、検討して答えてください。\n\n----------------\n\n"
+    prompt = f"「{question}」という質問の答えを、以下のSlack上の「{query}」の検索結果の情報も加味し、検討して答えてください。またその根拠も答えてください。\n\n----------------\n\n"
     for match in matches:
         if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
             formatedMessage = f"""
@@ -58,7 +58,6 @@ def sayAnswer(client, message, say, usingUser, question):
 投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
 ユーザー名: {match["username"]}
 投稿内容: {match["text"]}
-リンク: {match["permalink"]}
             """
 
             # 指定文字以上になったら履歴は追加しない 上限は4096トークンだが計算できないので適当な値
