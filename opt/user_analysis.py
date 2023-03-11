@@ -1,4 +1,4 @@
-from util import getHistoryIdentifier, getUserIdentifier
+from util import getUserIdentifier
 import datetime
 import openai
 import os
