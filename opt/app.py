@@ -185,11 +185,11 @@ def message_question(client, message, say, context):
 
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context):
-    say(f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴は、最大トークンサイズの{MAX_TOKEN_SIZE}まで保持する。\n" +
+    say(f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴は、{INPUT_MAX_TOKEN_SIZE}トークンまで保持します。\n" +
         "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +
         "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +
         "`!gpt-ca [#チャンネル名]` パブリックチャンネルの直近の投稿内容から、どのようなチャンネルであるのかを分析します。\n" +
-        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注.精度はあまり高くありません)\n")
+        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注. 精度はあまり高くありません)\n")
 
 @app.event("message")
 def handle_message_events(body, logger):

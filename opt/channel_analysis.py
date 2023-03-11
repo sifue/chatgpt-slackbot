@@ -1,4 +1,4 @@
-from util import getHistoryIdentifier, getUserIdentifier
+from util import getUserIdentifier, getTokenSize
 import datetime
 import openai
 import os
@@ -6,6 +6,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+MAX_TOKEN_SIZE = 4000  # トークンの最大サイズ (実際には4097だが、結合のために少し小さくしておく)
+COMPLETION_MAX_TOKEN_SIZE = 1000  # ChatCompletionの出力の最大トークンサイズ
+INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
 def sayChannelAnalysis(client, message, say, usingUser, targetChannel):
     """
@@ -30,8 +33,8 @@ def sayChannelAnalysis(client, message, say, usingUser, targetChannel):
 投稿内容: {match["text"]}
             """
 
-            # 指定文字以上になったら履歴は追加しない 上限は4096トークンだが計算できないので適当な値
-            if len(prompt) + len(formatedMessage) < 3800:
+            # 指定トークン数以上になったら追加しない
+            if getTokenSize(prompt) + getTokenSize(formatedMessage) < INPUT_MAX_TOKEN_SIZE:
                 count += 1
                 prompt += formatedMessage
 
@@ -49,7 +52,7 @@ def sayChannelAnalysis(client, message, say, usingUser, targetChannel):
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
         n=1,
-        max_tokens=1024,
+        max_tokens=COMPLETION_MAX_TOKEN_SIZE,
         temperature=1,  # 生成する応答の多様性
         presence_penalty=0,
         frequency_penalty=0,
