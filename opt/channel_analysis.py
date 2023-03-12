@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 4000  # トークンの最大サイズ (実際には4097だが、結合のために少し小さくしておく)
+MAX_TOKEN_SIZE = 3900  # トークンの最大サイズ (実際には4097だが、結合のために少し小さくしておく)
 COMPLETION_MAX_TOKEN_SIZE = 1000  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
