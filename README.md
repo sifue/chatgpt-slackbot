@@ -51,8 +51,9 @@ Python3.9.6以上で動作を確認済み。
 ```
 ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
-SLACK_BOT_TOKEN=xoxb-9999999
-SLACK_APP_TOKEN=xapp-9999999-9999999
+SLACK_BOT_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
+SLACK_USER_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
+SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 ```
 
