@@ -1,5 +1,5 @@
 from typing import List, Dict
-from util import get_user_identifier, calculate_num_tokens_by_prompt
+from util import get_user_identifier, calculate_num_tokens_by_prompt, say_ts
 import datetime
 import openai
 import os
@@ -17,7 +17,7 @@ def say_user_analysis(client, message, say, using_user, target_user):
     """
 
     print(f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
-    say(f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
+    say_ts(client, message, f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
 
     searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                             query=f"from:{target_user}", count=100, highlight=False)
@@ -41,7 +41,7 @@ def say_user_analysis(client, message, say, using_user, target_user):
                 prompt += formated_message
 
     if len(matches) == 0 or count == 0:
-        say(f"{target_user} さんの発言は見つかりませんでした。")
+        say_ts(client, message, f"{target_user} さんの発言は見つかりませんでした。")
         return
 
     using_team = message["team"]
@@ -63,4 +63,4 @@ def say_user_analysis(client, message, say, using_user, target_user):
     )
     print(chat_gpt_response)
 
-    say(chat_gpt_response["choices"][0]["message"]["content"])
+    say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])

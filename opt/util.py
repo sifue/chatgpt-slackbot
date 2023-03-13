@@ -1,6 +1,14 @@
 from typing import List, Dict
 import tiktoken
 
+def say_ts(client, message, text):
+    """
+    スレッドへの返信を行う形式で発言する
+    """
+    client.chat_postMessage(channel=message["channel"],
+                            thread_ts=message["ts"],
+                            text=text)
+
 enc = tiktoken.get_encoding("cl100k_base")
 GPT_3_5_TURBO_0301_MODEL = "gpt-3.5-turbo-0301"
 

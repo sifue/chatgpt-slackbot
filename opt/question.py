@@ -1,5 +1,5 @@
 from typing import List, Dict
-from util import get_user_identifier, calculate_num_tokens_by_prompt
+from util import get_user_identifier, calculate_num_tokens_by_prompt, say_ts
 import datetime
 import openai
 import os
@@ -18,7 +18,7 @@ def say_answer(client, message, say, using_user, question):
     """
 
     print(f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
-    say(f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
+    say_ts(client, message, f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
 
     usingTeam = message["team"]
     userIdentifier = get_user_identifier(usingTeam, using_user)
@@ -84,4 +84,4 @@ def say_answer(client, message, say, using_user, question):
     )
     print(chat_gpt_response)
 
-    say(chat_gpt_response["choices"][0]["message"]["content"])
+    say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])

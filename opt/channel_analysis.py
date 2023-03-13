@@ -1,5 +1,5 @@
 from typing import List, Dict
-from util import get_user_identifier, calculate_num_tokens_by_prompt, calculate_num_tokens
+from util import get_user_identifier, calculate_num_tokens_by_prompt, calculate_num_tokens, say_ts
 import datetime
 import openai
 import os
@@ -17,7 +17,7 @@ def say_channel_analysis(client, message, say, using_user, target_channel):
     """
 
     print(f"<@{using_user}> さんの依頼で {target_channel} について、直近のチャンネルでの発言より分析します。")
-    say(f"<@{using_user}> さんの依頼で {target_channel} について、直近のチャンネルでの発言より分析します。")
+    say_ts(client, message, f"<@{using_user}> さんの依頼で {target_channel} について、直近のチャンネルでの発言より分析します。")
 
     search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                             query=f"in:{target_channel}", count=100, highlight=False)
@@ -40,7 +40,7 @@ def say_channel_analysis(client, message, say, using_user, target_channel):
                 prompt += formated_message
 
     if len(matches) == 0 or count == 0:
-        say(f"{target_channel} での発言は見つかりませんでした。")
+        say_ts(client, message, f"{target_channel} での発言は見つかりませんでした。")
         return
 
     using_team = message["team"]
@@ -62,4 +62,4 @@ def say_channel_analysis(client, message, say, using_user, target_channel):
     )
     print(chat_gpt_response)
 
-    say(chat_gpt_response["choices"][0]["message"]["content"])
+    say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])
