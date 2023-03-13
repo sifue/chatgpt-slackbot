@@ -11,12 +11,12 @@ MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def say_channel_analysis(client, message, say, using_user, target_channel):
+def say_channel_analysis(client, message, say, using_user, target_channel, logger):
     """
     チャンネル分析のメッセージを送信する
     """
 
-    print(f"<@{using_user}> さんの依頼で {target_channel} について、直近のチャンネルでの発言より分析します。")
+    logger.info(f"<@{using_user}> さんの依頼で {target_channel} について、直近のチャンネルでの発言より分析します。")
     say_ts(client, message, f"<@{using_user}> さんの依頼で {target_channel} について、直近のチャンネルでの発言より分析します。")
 
     search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
@@ -47,7 +47,7 @@ def say_channel_analysis(client, message, say, using_user, target_channel):
     user_identifier = get_user_identifier(using_team, using_user)
 
     # ChatCompletionを呼び出す
-    print(f"prompt: `{prompt}`")
+    logger.info(f"prompt: `{prompt}`")
     chat_gpt_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
@@ -60,6 +60,6 @@ def say_channel_analysis(client, message, say, using_user, target_channel):
         logit_bias={},
         user=user_identifier
     )
-    print(chat_gpt_response)
+    logger.info(chat_gpt_response)
 
     say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])

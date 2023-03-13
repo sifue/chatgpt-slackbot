@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from typing import List, Dict
 from user_analysis import say_user_analysis
 from question import say_answer
@@ -27,7 +30,7 @@ COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークン
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
-def message_gpt(client, message, say, context):
+def message_gpt(client, message, say, context, logger):
     try:
         global using_user
         if using_user is not None:
@@ -48,26 +51,26 @@ def message_gpt(client, message, say, context):
                 history_array = history_dict[history_idetifier]
             history_array.append({"role": "user", "content": prompt})
 
-            print(history_array)
+            logger.info(history_array)
 
             # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
             while calculate_num_tokens(history_array) > INPUT_MAX_TOKEN_SIZE:
                 history_array = history_array[1:]
 
-            print(history_array)
+            logger.info(history_array)
 
             # 単一の発言でMAX_TOKEN_SIZEを超えたら、対応できない
             if(len(history_array) == 0):
                 messege_out_of_token_size = f"発言内容のトークン数が{INPUT_MAX_TOKEN_SIZE}を超えて、{calculate_num_tokens_by_prompt(prompt)}であったため、対応できませんでした。"
                 say_ts(client, message, messege_out_of_token_size)
-                print(messege_out_of_token_size)
+                logger.info(messege_out_of_token_size)
                 using_user = None
                 return
             
             say_ts(client, message, f"<@{using_user}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
             # ChatCompletionを呼び出す
-            print(f"prompt: `{prompt}`")
+            logger.info(f"prompt: `{prompt}`")
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=history_array,
@@ -80,7 +83,7 @@ def message_gpt(client, message, say, context):
                 logit_bias={},
                 user=user_identifier
             )
-            print(response)
+            logger.info(response)
 
             # ヒストリーを新たに追加
             newResponse_message = response["choices"][0]["message"]
@@ -96,7 +99,7 @@ def message_gpt(client, message, say, context):
             using_user = None
     except Exception as e:
         using_user = None
-        print(e)
+        logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
         # エラーを発生させた人の会話の履歴をリセットをする
@@ -106,7 +109,7 @@ def message_gpt(client, message, say, context):
 
 
 @app.message(re.compile(r"^!gpt-rs$"))
-def message_reset(client, message, say, context):
+def message_reset(client, message, say, context, logger):
     try:
         global using_user
         if using_user is not None:
@@ -121,62 +124,62 @@ def message_reset(client, message, say, context):
             # 履歴をリセットをする
             history_dict[historyIdetifier] = []
 
-            print(f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+            logger.info(f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
             say_ts(client, message, f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
             using_user = None
     except Exception as e:
         using_user = None
-        print(e)
+        logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 
 @app.message(re.compile(r"^!gpt-ua (\<\@[^ ]*\>).*$"))
-def message_user_analysis(client, message, say, context):
+def message_user_analysis(client, message, say, context, logger):
     try:
         global using_user
         if using_user is not None:
             say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user = message["user"]
-            say_user_analysis(client,message, say, using_user, context["matches"][0])
+            say_user_analysis(client,message, say, using_user, context["matches"][0], logger)
             using_user = None
     except Exception as e:
         using_user = None
-        print(e)
+        logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
-def message_channel_analysis(client, message, say, context):
+def message_channel_analysis(client, message, say, context, logger):
     try:
         global using_user
         if using_user is not None:
             say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user = message["user"]
-            say_channel_analysis(client,message, say, using_user, context["matches"][0])
+            say_channel_analysis(client,message, say, using_user, context["matches"][0], logger)
             using_user = None
     except Exception as e:
         using_user = None
-        print(e)
+        logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
-def message_question(client, message, say, context):
+def message_question(client, message, say, context, logger):
     try:
         global using_user
         if using_user is not None:
             say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user = message["user"]
-            say_answer(client, message, say, using_user, context["matches"][0])
+            say_answer(client, message, say, using_user, context["matches"][0], logger)
             using_user = None
     except Exception as e:
         using_user = None
-        print(e)
+        logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-help$"))
-def message_help(client, message, say, context):
+def message_help(client, message, say, context, logger):
     say_ts(client, message, f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴は、{INPUT_MAX_TOKEN_SIZE}トークンまで保持します。\n" +
         "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +
         "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +

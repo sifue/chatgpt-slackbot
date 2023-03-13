@@ -12,12 +12,12 @@ MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def say_answer(client, message, say, using_user, question):
+def say_answer(client, message, say, using_user, question, logger):
     """
     質問の答えのメッセージを送信する
     """
 
-    print(f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
+    logger.info(f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
     say_ts(client, message, f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
 
     usingTeam = message["team"]
@@ -37,10 +37,10 @@ def say_answer(client, message, say, using_user, question):
         logit_bias={},
         user=userIdentifier
     )
-    print(query_gpt_response)
+    logger.info(query_gpt_response)
     query_gpt_response_content = query_gpt_response["choices"][0]["message"]["content"]
 
-    print(f"queryGPTResponseContent: {query_gpt_response_content}")
+    logger.info(f"queryGPTResponseContent: {query_gpt_response_content}")
     matches = re.match(
         r'^(.|\s)*##########(.*)##########(.|\s)*$', query_gpt_response_content)
     query = ""
@@ -49,7 +49,7 @@ def say_answer(client, message, say, using_user, question):
     else:
         query = matches.group(2)
 
-    print(f"query: `{query}`")
+    logger.info(f"query: `{query}`")
     search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                             query=query, count=100, highlight=False)
     matches = search_response["messages"]["matches"]
@@ -69,7 +69,7 @@ def say_answer(client, message, say, using_user, question):
                 prompt += formated_message
 
     # ChatCompletionを呼び出す
-    print(f"prompt: `{prompt}`")
+    logger.info(f"prompt: `{prompt}`")
     chat_gpt_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
@@ -82,6 +82,6 @@ def say_answer(client, message, say, using_user, question):
         logit_bias={},
         user=userIdentifier
     )
-    print(chat_gpt_response)
+    logger.info(chat_gpt_response)
 
     say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])
