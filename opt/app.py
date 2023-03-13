@@ -21,7 +21,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
 
-using_user = None
+# 現在使用中のユーザーのセット、複数リクエストを受けると履歴が壊れることがあるので、一つのユーザーに対しては一つのリクエストしか受け付けないようにする
+using_user_set = set()  
 # key: historyIdetifier value: historyArray ex. [{"role": "user", "content": prompt}]
 history_dict : Dict[str, List[Dict[str, str]]] = {}
 
@@ -32,16 +33,15 @@ INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatComplet
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
 def message_gpt(client, message, say, context, logger):
     try:
-        global using_user
-        if using_user is not None:
-            say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
-            using_user = message["user"]
+            using_user_set.add(message["user"])
             using_team = message["team"]
             using_channel = message["channel"]
             history_idetifier = get_history_identifier(
-                using_team, using_channel, using_user)
-            user_identifier = get_user_identifier(using_team, using_user)
+                using_team, using_channel, message["user"])
+            user_identifier = get_user_identifier(using_team, message["user"])
 
             prompt = context["matches"][0]
 
@@ -51,23 +51,19 @@ def message_gpt(client, message, say, context, logger):
                 history_array = history_dict[history_idetifier]
             history_array.append({"role": "user", "content": prompt})
 
-            logger.info(history_array)
-
             # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
             while calculate_num_tokens(history_array) > INPUT_MAX_TOKEN_SIZE:
                 history_array = history_array[1:]
-
-            logger.info(history_array)
 
             # 単一の発言でMAX_TOKEN_SIZEを超えたら、対応できない
             if(len(history_array) == 0):
                 messege_out_of_token_size = f"発言内容のトークン数が{INPUT_MAX_TOKEN_SIZE}を超えて、{calculate_num_tokens_by_prompt(prompt)}であったため、対応できませんでした。"
                 say_ts(client, message, messege_out_of_token_size)
                 logger.info(messege_out_of_token_size)
-                using_user = None
+                using_user_set.remove(message["user"]) # ユーザーを解放
                 return
             
-            say_ts(client, message, f"<@{using_user}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
+            say_ts(client, message, f"<@{message['user']}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
             # ChatCompletionを呼び出す
             logger.info(f"prompt: `{prompt}`")
@@ -96,9 +92,9 @@ def message_gpt(client, message, say, context, logger):
 
             say_ts(client, message, newResponse_message["content"])
 
-            using_user = None
+            using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
-        using_user = None
+        using_user_set.remove(message["user"]) # ユーザーを解放
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
@@ -111,24 +107,23 @@ def message_gpt(client, message, say, context, logger):
 @app.message(re.compile(r"^!gpt-rs$"))
 def message_reset(client, message, say, context, logger):
     try:
-        global using_user
-        if using_user is not None:
-            say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
-            using_user = message["user"]
+            using_user_set.add(message["user"])
             using_team = message["team"]
             using_channel = message["channel"]
             historyIdetifier = get_history_identifier(
-                using_team, using_channel, using_user)
+                using_team, using_channel, message["user"])
 
             # 履歴をリセットをする
             history_dict[historyIdetifier] = []
 
-            logger.info(f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
-            say_ts(client, message, f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
-            using_user = None
+            logger.info(f"<@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+            say_ts(client, message, f"<@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+            using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
-        using_user = None
+        using_user_set.remove(message["user"]) # ユーザーを解放
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
@@ -136,45 +131,42 @@ def message_reset(client, message, say, context, logger):
 @app.message(re.compile(r"^!gpt-ua (\<\@[^ ]*\>).*$"))
 def message_user_analysis(client, message, say, context, logger):
     try:
-        global using_user
-        if using_user is not None:
-            say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
-            using_user = message["user"]
-            say_user_analysis(client,message, say, using_user, context["matches"][0], logger)
-            using_user = None
+            using_user_set.add(message["user"])
+            say_user_analysis(client,message, say, message["user"], context["matches"][0], logger)
+            using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
-        using_user = None
+        using_user_set.remove(message["user"]) # ユーザーを解放
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
 def message_channel_analysis(client, message, say, context, logger):
     try:
-        global using_user
-        if using_user is not None:
-            say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
-            using_user = message["user"]
-            say_channel_analysis(client,message, say, using_user, context["matches"][0], logger)
-            using_user = None
+            using_user_set.add(message["user"])
+            say_channel_analysis(client,message, say, message["user"], context["matches"][0], logger)
+            using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
-        using_user = None
+        using_user_set.remove(message["user"]) # ユーザーを解放
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
 def message_question(client, message, say, context, logger):
     try:
-        global using_user
-        if using_user is not None:
-            say_ts(client, message, f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
-            using_user = message["user"]
-            say_answer(client, message, say, using_user, context["matches"][0], logger)
-            using_user = None
+            using_user_set.add(message["user"])
+            say_answer(client, message, say, message["user"], context["matches"][0], logger)
+            using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
-        using_user = None
+        using_user_set.remove(message["user"]) # ユーザーを解放
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
