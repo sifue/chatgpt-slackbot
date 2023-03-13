@@ -1,7 +1,8 @@
-from user_analysis import sayUserAnalysis
-from question import sayAnswer
-from channel_analysis import sayChannelAnalysis
-from util import getHistoryIdentifier, getUserIdentifier, getTokenSize
+from typing import List, Dict
+from user_analysis import say_user_analysis
+from question import say_answer
+from channel_analysis import say_channel_analysis
+from util import get_history_identifier, get_user_identifier, calculate_num_tokens, calculate_num_tokens_by_prompt
 import re
 import openai
 import os
@@ -17,68 +18,59 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
 
-usingUser = None
+using_user = None
 # key: historyIdetifier value: historyArray ex. [{"role": "user", "content": prompt}]
-historyDict = {}
+history_dict : Dict[str, List[Dict[str, str]]] = {}
 
-MAX_TOKEN_SIZE = 3900  # トークンの最大サイズ (実際には4097だが、ヒストリー結合のために少し小さくしておく)
-COMPLETION_MAX_TOKEN_SIZE = 1000  # ChatCompletionの出力の最大トークンサイズ
+MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
+COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
-
-def countTokenSizeFromHistoryArray(historyArray):
-    """
-    会話の履歴の配列からトークンのサイズを計算する
-    """
-    sum = 0
-    for history in historyArray:
-        sum += getTokenSize(history['content'])
-    return sum
 
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
 def message_gpt(client, message, say, context):
     try:
-        global usingUser
-        if usingUser is not None:
-            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        global using_user
+        if using_user is not None:
+            say(f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
-            usingUser = message["user"]
-            usingTeam = message["team"]
-            usingChannel = message["channel"]
-            historyIdetifier = getHistoryIdentifier(
-                usingTeam, usingChannel, usingUser)
-            userIdentifier = getUserIdentifier(usingTeam, usingUser)
+            using_user = message["user"]
+            using_team = message["team"]
+            using_channel = message["channel"]
+            history_idetifier = get_history_identifier(
+                using_team, using_channel, using_user)
+            user_identifier = get_user_identifier(using_team, using_user)
 
             prompt = context["matches"][0]
 
             # ヒストリーを取得
-            historyArray = []
-            if historyIdetifier in historyDict.keys():
-                historyArray = historyDict[historyIdetifier]
-            historyArray.append({"role": "user", "content": prompt})
+            history_array: List[Dict[str, str]] = []
+            if history_idetifier in history_dict.keys():
+                history_array = history_dict[history_idetifier]
+            history_array.append({"role": "user", "content": prompt})
 
-            print(historyArray)
+            print(history_array)
 
             # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
-            while countTokenSizeFromHistoryArray(historyArray) > INPUT_MAX_TOKEN_SIZE:
-                historyArray = historyArray[1:]
+            while calculate_num_tokens(history_array) > INPUT_MAX_TOKEN_SIZE:
+                history_array = history_array[1:]
 
-            print(historyArray)
+            print(history_array)
 
             # 単一の発言でMAX_TOKEN_SIZEを超えたら、対応できない
-            if(len(historyArray) == 0):
-                messegeOutOfTokenSize = f"発言内容のトークン数が{INPUT_MAX_TOKEN_SIZE}を超えて、{getTokenSize(prompt)}であったため、対応できませんでした。"
-                say(messegeOutOfTokenSize)
-                print(messegeOutOfTokenSize)
-                usingUser = None
+            if(len(history_array) == 0):
+                messege_out_of_token_size = f"発言内容のトークン数が{INPUT_MAX_TOKEN_SIZE}を超えて、{calculate_num_tokens_by_prompt(prompt)}であったため、対応できませんでした。"
+                say(messege_out_of_token_size)
+                print(messege_out_of_token_size)
+                using_user = None
                 return
             
-            say(f"<@{usingUser}> さんの以下の発言に対応中（履歴数: {len(historyArray)} 、トークン数: {countTokenSizeFromHistoryArray(historyArray)}）\n```\n{prompt}\n```")
+            say(f"<@{using_user}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
             # ChatCompletionを呼び出す
             print(f"prompt: `{prompt}`")
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=historyArray,
+                messages=history_array,
                 top_p=1,
                 n=1,
                 max_tokens=COMPLETION_MAX_TOKEN_SIZE,
@@ -86,54 +78,54 @@ def message_gpt(client, message, say, context):
                 presence_penalty=0,
                 frequency_penalty=0,
                 logit_bias={},
-                user=userIdentifier
+                user=user_identifier
             )
             print(response)
 
             # ヒストリーを新たに追加
-            newResponseMessage = response["choices"][0]["message"]
-            historyArray.append(newResponseMessage)
+            newResponse_message = response["choices"][0]["message"]
+            history_array.append(newResponse_message)
 
             # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
-            while countTokenSizeFromHistoryArray(historyArray) > INPUT_MAX_TOKEN_SIZE:
-                historyArray = historyArray[1:]
-            historyDict[historyIdetifier] = historyArray # ヒストリーを更新
+            while calculate_num_tokens(history_array) > INPUT_MAX_TOKEN_SIZE:
+                history_array = history_array[1:]
+            history_dict[history_idetifier] = history_array # ヒストリーを更新
 
-            say(newResponseMessage["content"])
+            say(newResponse_message["content"])
 
-            usingUser = None
+            using_user = None
     except Exception as e:
-        usingUser = None
+        using_user = None
         print(e)
         say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
         # エラーを発生させた人の会話の履歴をリセットをする
-        historyIdetifier = getHistoryIdentifier(
+        history_idetifier = get_history_identifier(
             message["team"], message["channel"], message["user"])
-        historyDict[historyIdetifier] = []
+        history_dict[history_idetifier] = []
 
 
 @app.message(re.compile(r"^!gpt-rs$"))
 def message_reset(client, message, say, context):
     try:
-        global usingUser
-        if usingUser is not None:
-            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        global using_user
+        if using_user is not None:
+            say(f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
-            usingUser = message["user"]
-            usingTeam = message["team"]
-            usingChannel = message["channel"]
-            historyIdetifier = getHistoryIdentifier(
-                usingTeam, usingChannel, usingUser)
+            using_user = message["user"]
+            using_team = message["team"]
+            using_channel = message["channel"]
+            historyIdetifier = get_history_identifier(
+                using_team, using_channel, using_user)
 
             # 履歴をリセットをする
-            historyDict[historyIdetifier] = []
+            history_dict[historyIdetifier] = []
 
-            print(f"<@{usingUser}> さんの <#{usingChannel}> での会話の履歴をリセットしました。")
-            say(f"<@{usingUser}> さんの <#{usingChannel}> での会話の履歴をリセットしました。")
-            usingUser = None
+            print(f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+            say(f"<@{using_user}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+            using_user = None
     except Exception as e:
-        usingUser = None
+        using_user = None
         print(e)
         say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
@@ -141,45 +133,45 @@ def message_reset(client, message, say, context):
 @app.message(re.compile(r"^!gpt-ua (\<\@[^ ]*\>).*$"))
 def message_user_analysis(client, message, say, context):
     try:
-        global usingUser
-        if usingUser is not None:
-            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        global using_user
+        if using_user is not None:
+            say(f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
-            usingUser = message["user"]
-            sayUserAnalysis(client,message, say, usingUser, context["matches"][0])
-            usingUser = None
+            using_user = message["user"]
+            say_user_analysis(client,message, say, using_user, context["matches"][0])
+            using_user = None
     except Exception as e:
-        usingUser = None
+        using_user = None
         print(e)
         say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
 def message_channel_analysis(client, message, say, context):
     try:
-        global usingUser
-        if usingUser is not None:
-            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        global using_user
+        if using_user is not None:
+            say(f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
-            usingUser = message["user"]
-            sayChannelAnalysis(client,message, say, usingUser, context["matches"][0])
-            usingUser = None
+            using_user = message["user"]
+            say_channel_analysis(client,message, say, using_user, context["matches"][0])
+            using_user = None
     except Exception as e:
-        usingUser = None
+        using_user = None
         print(e)
         say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
 def message_question(client, message, say, context):
     try:
-        global usingUser
-        if usingUser is not None:
-            say(f"<@{usingUser}> さんの返答に対応中なのでお待ちください。")
+        global using_user
+        if using_user is not None:
+            say(f"<@{using_user}> さんの返答に対応中なのでお待ちください。")
         else:
-            usingUser = message["user"]
-            sayAnswer(client, message, say, usingUser, context["matches"][0])
-            usingUser = None
+            using_user = message["user"]
+            say_answer(client, message, say, using_user, context["matches"][0])
+            using_user = None
     except Exception as e:
-        usingUser = None
+        using_user = None
         print(e)
         say(f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 

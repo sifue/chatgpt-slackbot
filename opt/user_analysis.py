@@ -1,4 +1,5 @@
-from util import getUserIdentifier, getTokenSize
+from typing import List, Dict
+from util import get_user_identifier, calculate_num_tokens_by_prompt
 import datetime
 import openai
 import os
@@ -6,20 +7,20 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 3900  # トークンの最大サイズ (実際には4097だが、結合のために少し小さくしておく)
-COMPLETION_MAX_TOKEN_SIZE = 1000  # ChatCompletionの出力の最大トークンサイズ
+MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
+COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def sayUserAnalysis(client, message, say, usingUser, targetUser):
+def say_user_analysis(client, message, say, using_user, target_user):
     """
     ユーザー分析のメッセージを送信する
     """
 
-    print(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近のパブリックチャンネルの発言より分析します。")
-    say(f"<@{usingUser}> さんの依頼で {targetUser} さんについて、直近のパブリックチャンネルの発言より分析します。")
+    print(f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
+    say(f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
 
     searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
-                                            query=f"from:{targetUser}", count=100, highlight=False)
+                                            query=f"from:{target_user}", count=100, highlight=False)
     matches = searchResponse["messages"]["matches"]
 
 
@@ -27,7 +28,7 @@ def sayUserAnalysis(client, message, say, usingUser, targetUser):
     prompt = "以下のSlack上の投稿情報からこのユーザーがどのような人物なのか、どのような性格なのか分析して教えてください。\n\n----------------\n\n"
     for match in matches:
         if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
-            formatedMessage = f"""
+            formated_message = f"""
 投稿チャンネル: {match["channel"]["name"]}
 投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
 ユーザー名: {match["username"]}
@@ -35,20 +36,20 @@ def sayUserAnalysis(client, message, say, usingUser, targetUser):
             """
 
             # 指定トークン以上になったら履歴は追加しない
-            if getTokenSize(prompt) + getTokenSize(formatedMessage) < INPUT_MAX_TOKEN_SIZE:
+            if calculate_num_tokens_by_prompt(prompt + formated_message) < INPUT_MAX_TOKEN_SIZE:
                 count += 1
-                prompt += formatedMessage
+                prompt += formated_message
 
     if len(matches) == 0 or count == 0:
-        say(f"{targetUser} さんの発言は見つかりませんでした。")
+        say(f"{target_user} さんの発言は見つかりませんでした。")
         return
 
-    usingTeam = message["team"]
-    userIdentifier = getUserIdentifier(usingTeam, usingUser)
+    using_team = message["team"]
+    user_identifier = get_user_identifier(using_team, using_user)
 
     # ChatCompletionを呼び出す
     print(f"prompt: `{prompt}`")
-    chatGPTResponse = openai.ChatCompletion.create(
+    chat_gpt_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
@@ -58,8 +59,8 @@ def sayUserAnalysis(client, message, say, usingUser, targetUser):
         presence_penalty=0,
         frequency_penalty=0,
         logit_bias={},
-        user=userIdentifier
+        user=user_identifier
     )
-    print(chatGPTResponse)
+    print(chat_gpt_response)
 
-    say(chatGPTResponse["choices"][0]["message"]["content"])
+    say(chat_gpt_response["choices"][0]["message"]["content"])

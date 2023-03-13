@@ -1,4 +1,5 @@
-from util import getUserIdentifier, getTokenSize
+from typing import List, Dict
+from util import get_user_identifier, calculate_num_tokens_by_prompt
 import datetime
 import openai
 import os
@@ -7,26 +8,26 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 3900  # トークンの最大サイズ (実際には4097だが、結合のために少し小さくしておく)
-COMPLETION_MAX_TOKEN_SIZE = 1000  # ChatCompletionの出力の最大トークンサイズ
+MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
+COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def sayAnswer(client, message, say, usingUser, question):
+def say_answer(client, message, say, using_user, question):
     """
     質問の答えのメッセージを送信する
     """
 
-    print(f"<@{usingUser}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
-    say(f"<@{usingUser}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
+    print(f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
+    say(f"<@{using_user}>  さんの以下の質問にパブリックチャンネルの検索結果を踏まえて対応中\n```\n{question}\n```")
 
     usingTeam = message["team"]
-    userIdentifier = getUserIdentifier(usingTeam, usingUser)
+    userIdentifier = get_user_identifier(usingTeam, using_user)
 
     # ChatCompletionから適切なクエリを聞く
-    queryAskPrompt = f"「{question}」という質問をSlackの検索で調べるときに適切な検索クエリを教えてください。検索クエリとは単一の検索のための単語、または、複数の検索のための単語を半角スペースで繋げた文字列です。検索クエリを##########検索クエリ##########の形式で教えてください。"
-    queryGPTResponse = openai.ChatCompletion.create(
+    query_ask_prompt = f"「{question}」という質問をSlackの検索で調べるときに適切な検索クエリを教えてください。検索クエリとは単一の検索のための単語、または、複数の検索のための単語を半角スペースで繋げた文字列です。検索クエリを##########検索クエリ##########の形式で教えてください。"
+    query_gpt_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": queryAskPrompt}],
+        messages=[{"role": "user", "content": query_ask_prompt}],
         top_p=1,
         n=1,
         max_tokens=COMPLETION_MAX_TOKEN_SIZE,
@@ -36,12 +37,12 @@ def sayAnswer(client, message, say, usingUser, question):
         logit_bias={},
         user=userIdentifier
     )
-    print(queryGPTResponse)
-    queryGPTResponseContent = queryGPTResponse["choices"][0]["message"]["content"]
+    print(query_gpt_response)
+    query_gpt_response_content = query_gpt_response["choices"][0]["message"]["content"]
 
-    print(f"queryGPTResponseContent: {queryGPTResponseContent}")
+    print(f"queryGPTResponseContent: {query_gpt_response_content}")
     matches = re.match(
-        r'^(.|\s)*##########(.*)##########(.|\s)*$', queryGPTResponseContent)
+        r'^(.|\s)*##########(.*)##########(.|\s)*$', query_gpt_response_content)
     query = ""
     if matches is None:
         query = question # 検索クエリがない場合は質問そのものを検索クエリにする
@@ -49,14 +50,14 @@ def sayAnswer(client, message, say, usingUser, question):
         query = matches.group(2)
 
     print(f"query: `{query}`")
-    searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
+    search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                             query=query, count=100, highlight=False)
-    matches = searchResponse["messages"]["matches"]
+    matches = search_response["messages"]["matches"]
 
     prompt = f"「{question}」という質問の答えを、以下のSlack上の「{query}」の検索結果の情報も加味し、検討して答えてください。またその根拠も答えてください。\n\n----------------\n\n"
     for match in matches:
         if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
-            formatedMessage = f"""
+            formated_message = f"""
 投稿チャンネル: {match["channel"]["name"]}
 投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
 ユーザー名: {match["username"]}
@@ -64,12 +65,12 @@ def sayAnswer(client, message, say, usingUser, question):
             """
 
             # 指定トークン数以上になったら追加しない
-            if getTokenSize(prompt) + getTokenSize(formatedMessage) < INPUT_MAX_TOKEN_SIZE:
-                prompt += formatedMessage
+            if calculate_num_tokens_by_prompt(prompt + formated_message) < INPUT_MAX_TOKEN_SIZE:
+                prompt += formated_message
 
     # ChatCompletionを呼び出す
     print(f"prompt: `{prompt}`")
-    chatGPTResponse = openai.ChatCompletion.create(
+    chat_gpt_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
@@ -81,6 +82,6 @@ def sayAnswer(client, message, say, usingUser, question):
         logit_bias={},
         user=userIdentifier
     )
-    print(chatGPTResponse)
+    print(chat_gpt_response)
 
-    say(chatGPTResponse["choices"][0]["message"]["content"])
+    say(chat_gpt_response["choices"][0]["message"]["content"])
