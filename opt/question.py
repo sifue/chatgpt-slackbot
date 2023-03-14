@@ -37,10 +37,10 @@ def say_answer(client, message, say, using_user, question, logger):
         logit_bias={},
         user=userIdentifier
     )
-    logger.info(query_gpt_response)
+    logger.debug(query_gpt_response)
     query_gpt_response_content = query_gpt_response["choices"][0]["message"]["content"]
 
-    logger.info(f"queryGPTResponseContent: {query_gpt_response_content}")
+    logger.debug(f"queryGPTResponseContent: {query_gpt_response_content}")
     matches = re.match(
         r'^(.|\s)*##########(.*)##########(.|\s)*$', query_gpt_response_content)
     query = ""
@@ -49,7 +49,7 @@ def say_answer(client, message, say, using_user, question, logger):
     else:
         query = matches.group(2)
 
-    logger.info(f"query: `{query}`")
+    logger.debug(f"query: `{query}`")
     search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                             query=query, count=100, highlight=False)
     matches = search_response["messages"]["matches"]
@@ -69,7 +69,7 @@ def say_answer(client, message, say, using_user, question, logger):
                 prompt += formated_message
 
     # ChatCompletionを呼び出す
-    logger.info(f"prompt: `{prompt}`")
+    logger.debug(f"prompt: `{prompt}`")
     chat_gpt_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}],
@@ -82,6 +82,7 @@ def say_answer(client, message, say, using_user, question, logger):
         logit_bias={},
         user=userIdentifier
     )
-    logger.info(chat_gpt_response)
+    logger.debug(chat_gpt_response)
 
     say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])
+    logger.info(f"user: {message['user']}, content: {chat_gpt_response['choices'][0]['message']['content']}")

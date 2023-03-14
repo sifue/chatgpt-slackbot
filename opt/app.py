@@ -1,5 +1,6 @@
 import logging
-logging.basicConfig(level=logging.INFO)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+logging.basicConfig(level=logging.INFO, format=fmt)
 
 from typing import List, Dict
 from user_analysis import say_user_analysis
@@ -66,7 +67,7 @@ def message_gpt(client, message, say, context, logger):
             say_ts(client, message, f"<@{message['user']}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
             # ChatCompletionを呼び出す
-            logger.info(f"prompt: `{prompt}`")
+            logger.info(f"user: {message['user']}, prompt: {prompt}")
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=history_array,
@@ -79,18 +80,19 @@ def message_gpt(client, message, say, context, logger):
                 logit_bias={},
                 user=user_identifier
             )
-            logger.info(response)
+            logger.debug(response)
 
             # ヒストリーを新たに追加
-            newResponse_message = response["choices"][0]["message"]
-            history_array.append(newResponse_message)
+            new_response_message = response["choices"][0]["message"]
+            history_array.append(new_response_message)
 
             # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
             while calculate_num_tokens(history_array) > INPUT_MAX_TOKEN_SIZE:
                 history_array = history_array[1:]
             history_dict[history_idetifier] = history_array # ヒストリーを更新
 
-            say_ts(client, message, newResponse_message["content"])
+            say_ts(client, message, new_response_message["content"])
+            logger.info(f"user: {message['user']}, content: {new_response_message['content']}")
 
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
