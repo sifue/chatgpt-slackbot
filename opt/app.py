@@ -182,7 +182,7 @@ def message_help(client, message, say, context, logger):
 
 @app.event("message")
 def handle_message_events(body, logger):
-    logger.info(body)
+    logger.debug(body)
 
 
 # アプリを起動
