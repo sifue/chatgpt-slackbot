@@ -10,6 +10,7 @@ from util import get_history_identifier, get_user_identifier, calculate_num_toke
 import re
 import openai
 import os
+from distutils.util import strtobool
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -36,7 +37,7 @@ def check_availability(message, logger) -> bool:
     このチャンネルが利用可能かどうかを返す
     """
     # もし環境変数にUSE_ONLY_PUBLIC_CHANNELが設定されていて、かつ、チャンネルタイプがpublicであるchannelでないなら、利用不可
-    if bool(os.getenv("USE_ONLY_PUBLIC_CHANNEL")) and message["channel_type"] != "channel":
+    if strtobool(os.getenv("USE_ONLY_PUBLIC_CHANNEL")) and message["channel_type"] != "channel":
         return False
     else:
         return True
