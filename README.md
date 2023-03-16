@@ -55,6 +55,7 @@ SLACK_BOT_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
 SLACK_USER_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
 SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
+USE_ONLY_PUBLIC_CHANNEL=False
 ```
 
 NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。

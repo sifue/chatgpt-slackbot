@@ -31,8 +31,24 @@ MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
+def check_availability(message, logger) -> bool:
+    """
+    このチャンネルが利用可能かどうかを返す
+    """
+    # もし環境変数にUSE_ONLY_PUBLIC_CHANNELが設定されていて、かつ、チャンネルタイプがpublicであるchannelでないなら、利用不可
+    if bool(os.getenv("USE_ONLY_PUBLIC_CHANNEL")) and message["channel_type"] != "channel":
+        return False
+    else:
+        return True
+
+
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
 def message_gpt(client, message, say, context, logger):
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
     try:
         if message["user"] in using_user_set: # 既に自身が利用中の場合
             say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
@@ -108,6 +124,11 @@ def message_gpt(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-rs$"))
 def message_reset(client, message, say, context, logger):
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
     try:
         if message["user"] in using_user_set: # 既に自身が利用中の場合
             say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
@@ -132,6 +153,11 @@ def message_reset(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-ua (\<\@[^ ]*\>).*$"))
 def message_user_analysis(client, message, say, context, logger):
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+    
     try:
         if message["user"] in using_user_set: # 既に自身が利用中の場合
             say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
@@ -146,6 +172,11 @@ def message_user_analysis(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
 def message_channel_analysis(client, message, say, context, logger):
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
     try:
         if message["user"] in using_user_set: # 既に自身が利用中の場合
             say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
@@ -160,6 +191,11 @@ def message_channel_analysis(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
 def message_question(client, message, say, context, logger):
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
     try:
         if message["user"] in using_user_set: # 既に自身が利用中の場合
             say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
