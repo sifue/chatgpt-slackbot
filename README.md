@@ -6,11 +6,13 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 ユーザーを過去の発言から分析したり、ワークスペースの結果を加味して質問に答えることもできる。  
 
 ## ボットの使い方
-- AIとの会話: !gpt \[会話内容\]
-- AIとの会話の履歴をリセット: !gpt-rs
+- AI(ChatGPT)との会話: !gpt \[会話内容\]
+- AI(ChatGPT)との会話の履歴をリセット: !gpt-rs
 - 指定したユーザーの直近のパブリックチャンネルで発言からユーザー分析を依頼: !gpt-ua \[@ユーザー名\]
 - 指定したパブリックチャンネルで投稿内容からチャンネルの分析を依頼: !gpt-ca \[#パブリックチャンネル名\]
 - パブリックチャンネルの検索結果を踏まえて質問に答える: !gpt-q \[質問\]
+- AI(GPT-4)との会話: !gpt-4 \[会話内容\]
+- AI(GPT-4)との会話の履歴をリセット: !gpt-4-rs
 - 使い方を表示: !gpt-help
 
 セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。
@@ -56,9 +58,10 @@ SLACK_USER_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
 SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 USE_ONLY_PUBLIC_CHANNEL=False
+USE_GPT_4_COMMAND=False
 ```
 
-NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。
+NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。
 
 あとは以下を実行してイメージをビルド&実行。
 
