@@ -5,3 +5,4 @@ SLACK_USER_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
 SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 USE_ONLY_PUBLIC_CHANNEL=False
+USE_GPT_4_COMMAND=False

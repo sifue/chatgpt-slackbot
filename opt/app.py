@@ -6,7 +6,8 @@ from typing import List, Dict
 from user_analysis import say_user_analysis
 from question import say_answer
 from channel_analysis import say_channel_analysis
-from util import get_history_identifier, get_user_identifier, calculate_num_tokens, calculate_num_tokens_by_prompt, say_ts
+from util import get_history_identifier, get_user_identifier, calculate_num_tokens, calculate_num_tokens_by_prompt, say_ts, check_availability
+from gpt_4 import GPT_4_CommandExecutor
 import re
 import openai
 import os
@@ -27,24 +28,15 @@ app = App(token=os.getenv("SLACK_BOT_TOKEN"))
 using_user_set = set()  
 # key: historyIdetifier value: historyArray ex. [{"role": "user", "content": prompt}]
 history_dict : Dict[str, List[Dict[str, str]]] = {}
+gpt_4_command_executor = GPT_4_CommandExecutor(openai)
 
 MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def check_availability(message, logger) -> bool:
-    """
-    このチャンネルが利用可能かどうかを返す
-    """
-    # もし環境変数にUSE_ONLY_PUBLIC_CHANNELが設定されていて、かつ、チャンネルタイプがpublicであるchannelでないなら、利用不可
-    if strtobool(os.getenv("USE_ONLY_PUBLIC_CHANNEL")) and message["channel_type"] != "channel":
-        return False
-    else:
-        return True
-
-
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
 def message_gpt(client, message, say, context, logger):
+    """会話を行う"""
     if not check_availability(message, logger):
         say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
         logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
@@ -125,6 +117,7 @@ def message_gpt(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-rs$"))
 def message_reset(client, message, say, context, logger):
+    """会話の履歴をリセットする"""
     if not check_availability(message, logger):
         say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
         logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
@@ -154,6 +147,7 @@ def message_reset(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-ua (\<\@[^ ]*\>).*$"))
 def message_user_analysis(client, message, say, context, logger):
+    """ユーザーの分析を行う"""
     if not check_availability(message, logger):
         say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
         logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
@@ -173,6 +167,7 @@ def message_user_analysis(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
 def message_channel_analysis(client, message, say, context, logger):
+    """チャンネルの分析を行う"""
     if not check_availability(message, logger):
         say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
         logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
@@ -192,6 +187,7 @@ def message_channel_analysis(client, message, say, context, logger):
 
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
 def message_question(client, message, say, context, logger):
+    """Slackの検索を踏まえて質問に回答する"""
     if not check_availability(message, logger):
         say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
         logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
@@ -209,13 +205,71 @@ def message_question(client, message, say, context, logger):
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
+@app.message(re.compile(r"^!gpt-4 ((.|\s)*)$"))
+def message_gpt_4(client, message, say, context, logger):
+    """GPT-4の会話をする"""
+    if not strtobool(os.getenv("USE_GPT_4_COMMAND")):  # GPT-4コマンドを利用できない場合は終了
+        return
+
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
+    try:
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
+        else:
+            using_user_set.add(message["user"])
+            gpt_4_command_executor.execute(client, message, say, context, logger)
+            using_user_set.remove(message["user"]) # ユーザーを解放
+    except Exception as e:
+        using_user_set.remove(message["user"]) # ユーザーを解放
+        logger.error(e)
+        say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
+        # エラーを発生させた人の会話の履歴をリセットをする
+        gpt_4_command_executor.execute_reset(client, message, say, context, logger)
+
+
+@app.message(re.compile(r"^!gpt-4-rs$"))
+def message_reset(client, message, say, context, logger):
+    """GPT-4の会話履歴をリセットする"""
+    if not strtobool(os.getenv("USE_GPT_4_COMMAND")):  # GPT-4コマンドを利用できない場合は終了
+        return
+
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
+    try:
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
+        else:
+            using_user_set.add(message["user"])
+            gpt_4_command_executor.execute_reset(client, message, say, context, logger)
+            using_user_set.remove(message["user"]) # ユーザーを解放
+    except Exception as e:
+        using_user_set.remove(message["user"]) # ユーザーを解放
+        logger.error(e)
+        say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
+
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context, logger):
-    say_ts(client, message, f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴は、{INPUT_MAX_TOKEN_SIZE}トークンまで保持します。\n" +
-        "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +
-        "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +
-        "`!gpt-ca [#チャンネル名]` パブリックチャンネルの直近の投稿内容から、どのようなチャンネルであるのかを分析します。\n" +
-        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注. 精度はあまり高くありません)\n")
+    """ヘルプを表示する"""
+    help_message =  f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。会話の履歴は、{INPUT_MAX_TOKEN_SIZE}トークンまで保持します。\n" +\
+        "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +\
+        "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +\
+        "`!gpt-ca [#チャンネル名]` パブリックチャンネルの直近の投稿内容から、どのようなチャンネルであるのかを分析します。\n" +\
+        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注. 精度はあまり高くありません)\n"
+
+    if  strtobool(os.getenv("USE_GPT_4_COMMAND")):  # GPT-4コマンドを利用する場合
+        help_message += f"`!gpt-4 [ボットに伝えたいメッセージ]` の形式でGPT-4のAIと会話できます。会話の履歴は、{gpt_4_command_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。(注. 知識は多いですが動作は遅く、利用制限があり使えないこともあります)\n"
+        help_message += "`!gpt-4-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n"
+
+    say_ts(client, message, help_message)
 
 @app.event("message")
 def handle_message_events(body, logger):
