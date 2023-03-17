@@ -19,33 +19,45 @@ def say_user_analysis(client, message, say, using_user, target_user, logger):
     logger.info(f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
     say_ts(client, message, f"<@{using_user}> さんの依頼で {target_user} さんについて、直近のパブリックチャンネルの発言より分析します。")
 
-    searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
-                                            query=f"from:{target_user}", count=100, highlight=False)
-    matches = searchResponse["messages"]["matches"]
-
-
-    count = 0
+    search_page = 1
+    total_page = 1
     prompt = "以下のSlack上の投稿情報からこのユーザーがどのような人物なのか、どのような性格なのか分析して教えてください。\n\n----------------\n\n"
-    for match in matches:
-        if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
-            formated_message = f"""
-投稿チャンネル: {match["channel"]["name"]}
-投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
-ユーザー名: {match["username"]}
-投稿内容: {match["text"]}
-            """
+    message_count = 0
+    is_full = False
 
-            # 指定トークン以上になったら履歴は追加しない
-            if calculate_num_tokens_by_prompt(prompt + formated_message) < INPUT_MAX_TOKEN_SIZE:
-                count += 1
-                prompt += formated_message
+    # 入力トークンサイズまで何度も検索して、直近のパブリックチャンネルの発言を取得する
+    while not is_full and search_page <= total_page:
+        logger.info(f"<@{using_user}> さんの {target_user} さんについての {search_page} / {total_page} 回目の検索を開始します。")
+        searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
+                                                query=f"from:{target_user}", page=search_page, count=100, highlight=False)
+        matches = searchResponse["messages"]["matches"]
+        total_page = searchResponse["messages"]["paging"]["total"]
 
-    if len(matches) == 0 or count == 0:
+        for match in matches:
+            if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
+                formated_message = f"""
+    投稿チャンネル: {match["channel"]["name"]}
+    投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
+    ユーザー名: {match["username"]}
+    投稿内容: {match["text"]}
+                """
+
+                # 入力トークンサイズ以下なら、promptに追加する、そうでないなら is_full を True にする
+                if calculate_num_tokens_by_prompt(prompt + formated_message) < INPUT_MAX_TOKEN_SIZE:
+                    message_count += 1
+                    prompt += formated_message
+                else:
+                    is_full = True
+        search_page += 1
+
+    if message_count == 0:
         say_ts(client, message, f"{target_user} さんの発言は見つかりませんでした。")
         return
 
     using_team = message["team"]
     user_identifier = get_user_identifier(using_team, using_user)
+
+    logger.info(f"{target_user} さんについての {message_count} 件の発言を分析します。")
 
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
