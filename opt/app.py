@@ -5,6 +5,7 @@ logging.basicConfig(level=logging.INFO, format=fmt)
 from typing import List, Dict
 from user_analysis import say_user_analysis
 from question import say_answer
+from websearch import say_with_websearch
 from channel_analysis import say_channel_analysis
 from util import get_history_identifier, get_user_identifier, calculate_num_tokens, calculate_num_tokens_by_prompt, say_ts, check_availability
 from gpt_4 import GPT_4_CommandExecutor
@@ -185,6 +186,26 @@ def message_channel_analysis(client, message, say, context, logger):
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
+@app.message(re.compile(r"^!gpt-w ((.|\s)*)$"))
+def message_websearch(client, message, say, context, logger):
+    """DuckDuckGoでのWeb検索を踏まえて質問に回答する"""
+    if not check_availability(message, logger):
+        say_ts(client, message, f"<#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        logger.info(f"user: {message['user']}, <#{message['channel']}> はパブリックチャンネルではないため利用できません。")
+        return
+
+    try:
+        if message["user"] in using_user_set: # 既に自身が利用中の場合
+            say_ts(client, message, f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
+        else:
+            using_user_set.add(message["user"])
+            say_with_websearch(client, message, say, message["user"], context["matches"][0], logger)
+            using_user_set.remove(message["user"]) # ユーザーを解放
+    except Exception as e:
+        using_user_set.remove(message["user"]) # ユーザーを解放
+        logger.error(e)
+        say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
 @app.message(re.compile(r"^!gpt-q ((.|\s)*)$"))
 def message_question(client, message, say, context, logger):
     """Slackの検索を踏まえて質問に回答する"""
@@ -204,6 +225,7 @@ def message_question(client, message, say, context, logger):
         using_user_set.remove(message["user"]) # ユーザーを解放
         logger.error(e)
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
 
 @app.message(re.compile(r"^!gpt-4 ((.|\s)*)$"))
 def message_gpt_4(client, message, say, context, logger):
@@ -263,7 +285,8 @@ def message_help(client, message, say, context, logger):
         "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +\
         "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +\
         "`!gpt-ca [#チャンネル名]` パブリックチャンネルの直近の投稿内容から、どのようなチャンネルであるのかを分析します。\n" +\
-        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注. 精度はあまり高くありません)\n"
+        "`!gpt-w [質問]` Web検索の結果を踏まえて質問に答えます。\n" +\
+        "`!gpt-q [質問]` パブリックチャンネルの検索結果を踏まえて質問に答えます。(注. 精度はあまり高くありません)\n" 
 
     if  strtobool(os.getenv("USE_GPT_4_COMMAND")):  # GPT-4コマンドを利用する場合
         help_message += f"`!gpt-4 [ボットに伝えたいメッセージ]` の形式でGPT-4のAIと会話できます。会話の履歴は、{gpt_4_command_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。(注. 知識は多いですが動作は遅く、利用制限があり使えないこともあります)\n"
