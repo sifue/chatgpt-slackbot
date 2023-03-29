@@ -1,3 +1,4 @@
+import traceback
 import logging
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=logging.INFO, format=fmt)
@@ -107,7 +108,7 @@ def message_gpt(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
         # エラーを発生させた人の会話の履歴をリセットをする
@@ -142,7 +143,7 @@ def message_reset(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 
@@ -163,7 +164,7 @@ def message_user_analysis(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-ca (\<\#[^ ]*\>).*$"))
@@ -183,7 +184,7 @@ def message_channel_analysis(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 @app.message(re.compile(r"^!gpt-w ((.|\s)*)$"))
@@ -223,7 +224,7 @@ def message_question(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 
@@ -247,7 +248,7 @@ def message_gpt_4(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
         # エラーを発生させた人の会話の履歴をリセットをする
@@ -274,7 +275,7 @@ def message_reset(client, message, say, context, logger):
             using_user_set.remove(message["user"]) # ユーザーを解放
     except Exception as e:
         using_user_set.remove(message["user"]) # ユーザーを解放
-        logger.error(e)
+        logger.error(traceback.format_exc())
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 
