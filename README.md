@@ -49,7 +49,7 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 ### インストール方法
 Python3.9.6以上で動作を確認済み。
 
-.env ファイルを実行フォルダ内に作成して、自分のクレデンシャル情報を記述
+`opt/.env` ファイルをフォルダ内に作成して、自分のクレデンシャル情報を記述
 
 ```
 ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
