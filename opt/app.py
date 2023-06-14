@@ -32,8 +32,8 @@ using_user_set = set()
 history_dict : Dict[str, List[Dict[str, str]]] = {}
 gpt_4_command_executor = GPT_4_CommandExecutor(openai)
 
-MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
-COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
+MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
@@ -80,7 +80,7 @@ def message_gpt(client, message, say, context, logger):
             # ChatCompletionを呼び出す
             logger.info(f"user: {message['user']}, prompt: {prompt}")
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model="gpt-3.5-turbo-16k",
                 messages=history_array,
                 top_p=1,
                 n=1,

@@ -10,11 +10,11 @@ def say_ts(client, message, text):
                             text=text)
 
 enc = tiktoken.get_encoding("cl100k_base")
-GPT_3_5_TURBO_0301_MODEL = "gpt-3.5-turbo-0301"
+GPT_3_5_TURBO_16K_MODEL = "gpt-3.5-turbo-16k"
 
 def calculate_num_tokens(
     messages: List[Dict[str, str]],
-    model: str = GPT_3_5_TURBO_0301_MODEL,
+    model: str = GPT_3_5_TURBO_16K_MODEL,
 ) -> int:
     """
     メッセージのトークン数を計算する
@@ -24,7 +24,7 @@ def calculate_num_tokens(
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
         encoding = tiktoken.get_encoding("cl100k_base")
-    if model == GPT_3_5_TURBO_0301_MODEL:  # note: future models may deviate from this
+    if model == GPT_3_5_TURBO_16K_MODEL:  # note: future models may deviate from this
         num_tokens = 0
         for message in messages:
             # every message follows <im_start>{role/name}\n{content}<im_end>\n

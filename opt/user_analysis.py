@@ -7,8 +7,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
-COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
+MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
 def say_user_analysis(client, message, say, using_user, target_user, logger):
@@ -62,7 +62,7 @@ def say_user_analysis(client, message, say, using_user, target_user, logger):
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
     chat_gpt_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
         n=1,

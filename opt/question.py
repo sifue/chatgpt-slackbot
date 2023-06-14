@@ -8,8 +8,8 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 4096  # トークンの最大サイズ
-COMPLETION_MAX_TOKEN_SIZE = 1024  # ChatCompletionの出力の最大トークンサイズ
+MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
 def say_answer(client, message, say, using_user, question, logger):
@@ -26,7 +26,7 @@ def say_answer(client, message, say, using_user, question, logger):
     # ChatCompletionから適切なクエリを聞く
     query_ask_prompt = f"「{question}」という質問をSlackの検索で調べるときに適切な検索クエリを教えてください。検索クエリとは単一の検索のための単語、または、複数の検索のための単語を半角スペースで繋げた文字列です。検索クエリを##########検索クエリ##########の形式で教えてください。"
     query_gpt_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         messages=[{"role": "user", "content": query_ask_prompt}],
         top_p=1,
         n=1,
@@ -71,7 +71,7 @@ def say_answer(client, message, say, using_user, question, logger):
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
     chat_gpt_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
         n=1,
