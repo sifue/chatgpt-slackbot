@@ -38,7 +38,7 @@ def say_user_analysis(client, message, say, using_user, target_user, logger):
                 formated_message = f"""
     投稿チャンネル: {match["channel"]["name"]}
     投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
-    ユーザー名: {match["username"]}
+    ユーザーID: {match["user"]}
     投稿内容: {match["text"]}
                 """
 
