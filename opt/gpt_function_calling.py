@@ -32,7 +32,7 @@ class GPT_Function_Calling_CommandExecutor():
                     "properties": {
                         "query": {
                             "type": "string",
-                            "description": "検索クエリは、 'シャム猫 犬', '\"柴犬と三毛猫、飼うならどっち？\"', '日本橋 -東京', 'from:<@U0VKMCTEV>', 'in:<#C0VF1QBEK>', 'before:2022-11-25', 'after:2022-11-25', 'on:2022-11-25', 'during:2022-11'などを組み合わせて使う。例えば、ユーザー <@U0VKMCTEV> の チャンネル <#C0VF1QBEK> での 2022年11月1日以前のシャム猫に関することを調べるクエリは、 'from:<@U0VKMCTEV> in:<#C0VF1QBEK> before:2022-11-01 シャム猫' というクエリとなる",
+                            "description": "検索クエリは、 'シャム猫 犬', '\"柴犬と三毛猫、飼うならどっち？\"', '日本橋 -東京', 'from:<@U0VKMCTEV>', 'in:<#C0VF1QBEK>', 'before:2022-11-25', 'after:2022-11-25', 'on:2022-11-25', 'during:2022-11'などを組み合わせて使う。例えば、ユーザー <@U0VKMCTEV> の チャンネル <#C0VF1QBEK> での 2022年11月2日から2022年11月3日までのシャム猫に関することを調べるクエリは、 'from:<@U0VKMCTEV> in:<#C0VF1QBEK> after:2022-11-02 before:2022-11-03 シャム猫' というクエリとなる",
                         }
                     },
                 "required": ["query"],
