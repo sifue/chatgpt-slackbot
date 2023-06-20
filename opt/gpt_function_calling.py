@@ -9,15 +9,6 @@ import os
 class GPT_Function_Calling_CommandExecutor():
     """ChatGPT Function Calling を使ってWeb検索利用やSlack検索利用の会話をするコマンドの実行クラス"""
 
-    MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
-    COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
-    INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - \
-        COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
-
-    def __init__(self, openai):
-        self.history_dict: Dict[str, List[Dict[str, str]]] = {}
-        self.openai = openai
-
     FUNCTIONS = [
         {
             "name": "get_web_search_result",
@@ -47,8 +38,19 @@ class GPT_Function_Calling_CommandExecutor():
                 "required": ["query"],
             },
         },
-
     ]
+
+    MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+    COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
+    # ChatCompletionの入力に使うトークンサイズ、FUNCTION分はJSON化してプロンプトとして雑に計算する(トークン計算方法不明のため)
+    INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - \
+        COMPLETION_MAX_TOKEN_SIZE - \
+        calculate_num_tokens_by_prompt(json.dumps(FUNCTIONS, ensure_ascii=False))
+
+    def __init__(self, openai):
+        self.history_dict: Dict[str, List[Dict[str, str]]] = {}
+        self.openai = openai
+
 
     def get_web_search_result(self, query):
         """Web検索を実行する、Function Calling用実装"""
@@ -66,16 +68,14 @@ class GPT_Function_Calling_CommandExecutor():
 
     def get_slack_search_result(self, query, client):
         """Slack検索を実行する、Function Calling用実装"""
-
         search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
-                                                 query=query, count=20, highlight=False)
+                                                 query=query, count=100, highlight=False)
 
         matches = search_response["messages"]["matches"]
         filterd_matches = []
         for match in matches:  # パブリックのチャンネルのメッセージのみを抽出
             if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
-
-                # JSONが大きいため、情報を絞る
+                # JSONが大きいため、トークン数節約のため情報を絞る
                 # 参考: https://api.slack.com/methods/search.messages
                 filterd_matches.append({
                     "channel_id": match["channel"]["id"],
@@ -84,6 +84,9 @@ class GPT_Function_Calling_CommandExecutor():
                     "timestamp": datetime.fromtimestamp(float(match["ts"])).strftime("%Y/%m/%d %H:%M:%S"),
                     "user_id": match["user"]  # usernameは古いデフォルト名なため入れない
                 })
+            
+            if len(filterd_matches) >= 20: # 利用トークン節約のため含めるメッセージ数を制限
+                break
 
         return {
             "search_results": filterd_matches,
@@ -172,8 +175,16 @@ class GPT_Function_Calling_CommandExecutor():
                 function_response = self.get_slack_search_result(query, client)
                 search_results = function_response["search_results"]
                 say_ts(client, message,
-                       f"{len(search_results)}件のSlack検索の結果を参考に返答します。")
+                       f"{len(search_results)}件のSlack検索の結果が見つかりました。")
 
+            function_json_content = json.dumps(function_response)
+            # 検索結果全体でMAX_TOKEN_SIZEを超えたら、検索結果を減らす
+            while calculate_num_tokens_by_prompt(function_json_content) > self.COMPLETION_MAX_TOKEN_SIZE:
+                search_results = search_results[:-1]
+                function_response["search_results"] = search_results
+                function_json_content = json.dumps(function_response)
+
+            # 単一検索結果でMAX_TOKEN_SIZEを超えるような検索結果が0件なら返答できない(Slackでも1メッセージ4000文字なのでないはず...)
             if len(search_results) == 0:
                 no_result_message = "検索結果が0件であったため返答できませんでした。別の質問に変更をお願いします。"
                 say_ts(client, message, no_result_message)
@@ -187,7 +198,7 @@ class GPT_Function_Calling_CommandExecutor():
             history_array.append({
                 "role": "function",
                 "name": function_name,
-                "content": json.dumps(function_response),  # JSON文字列
+                "content": function_json_content,  # JSON文字列
             })
 
             # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
@@ -199,6 +210,7 @@ class GPT_Function_Calling_CommandExecutor():
                 messege_out_of_token_size = f"検索結果のトークン数が{self.INPUT_MAX_TOKEN_SIZE}を超えていたため、対応できませんでした。"
                 say_ts(client, message, messege_out_of_token_size)
                 logger.info(messege_out_of_token_size)
+                self.execute_reset(client, message, say, context, logger) # 対応できないためリセットをしてしまう
                 return
 
             # ChatCompletionを呼び出す
