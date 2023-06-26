@@ -61,9 +61,10 @@ SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 USE_ONLY_PUBLIC_CHANNEL=False
 USE_GPT_4_COMMAND=False
+DAILY_USER_LIMIT=
 ```
 
-NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。
+NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。DAILY_USER_LIMITは、1日にユーザーが利用できる上限回数を設定できる機能。整数値で設定する。空の場合は制限なし。
 
 あとは以下を実行してイメージをビルド&実行。
 
@@ -83,6 +84,38 @@ docker compose --env-file ./opt/.env down
 docker compose logs
 ```
 でログ確認。
+
+## 利用ログ
+`opt/slackbot.db` のsqlite3ファイルに利用ログが記録される。
+
+```
+CREATE TABLE IF NOT EXISTS usage_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date text,
+    user_id text,
+    command_type text,
+    created_at text
+)
+CREATE INDEX IF NOT EXISTS idx_date_user ON usage_logs (date, user_id)
+```
+
+コピーを取得して、sqlite3コマンドでsqlを発行して利用ログを確認できる。
+
+### 日付ごとのコマンドごとの回数取得SQL
+```
+SELECT date, command_type, COUNT(*) as count
+FROM usage_logs
+GROUP BY date, command_type
+ORDER BY date DESC;
+```
+
+### ユーザーごとのコマンドごとの回数取得SQL
+```
+SELECT user_id, COUNT(*) as count
+FROM usage_logs
+GROUP BY user_id
+ORDER BY count DESC;
+```
 
 ## LICNESE
 The MIT License
