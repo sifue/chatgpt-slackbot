@@ -99,7 +99,11 @@ CREATE TABLE IF NOT EXISTS usage_logs (
 CREATE INDEX IF NOT EXISTS idx_date_user ON usage_logs (date, user_id)
 ```
 
-コピーを取得して、sqlite3コマンドでsqlを発行して利用ログを確認できる。
+コピーを取得して、sqlite3コマンドでsqlを発行して利用ログを確認できる。ワンライナーであれば以下のように直近のログを表示することができる。  
+
+```
+sqlite3 slackbot.db "select * from usage_logs order by created_at desc limit 100;"
+```
 
 ### 日付ごとのコマンドごとの回数取得SQL
 ```
