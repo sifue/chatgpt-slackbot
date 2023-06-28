@@ -105,6 +105,30 @@ CREATE INDEX IF NOT EXISTS idx_date_user ON usage_logs (date, user_id)
 sqlite3 slackbot.db "select * from usage_logs order by created_at desc limit 100;"
 ```
 
+### SQlite3のDBへの接続およびび表の整形の仕方
+
+sqlite3コマンドで接続して以下のようにすることで表の整形ができる
+
+```
+sqlite3 slackbot.db
+sqlite> .headers on
+sqlite> .mode column
+sqlite> select * from  usage_logs order by created_at desc limit 100;
+```
+
+```
+id          date        user_id      command_type  created_at
+----------  ----------  -----------  ------------  -------------------
+94          2023-06-28  UXXXXXXXXXX  gpt           2023-06-28 11:19:56
+93          2023-06-28  UXXXXXXXXXX  gpt-ca        2023-06-28 11:18:13
+92          2023-06-28  UXXXXXXXXXX  gpt-ua        2023-06-28 11:10:36
+91          2023-06-28  UXXXXXXXXXX  gpt-ua        2023-06-28 11:08:49
+90          2023-06-28  UXXXXXXXXXX  gpt-ua        2023-06-28 11:04:36
+89          2023-06-28  UXXXXXXXXXX  gpt-ua        2023-06-28 11:03:34
+88          2023-06-28  UXXXXXXXXXX  gpt-ca        2023-06-28 11:00:51
+87          2023-06-28  UXXXXXXXXXX  gpt           2023-06-28 10:54:41
+```
+
 ### 日付ごとのコマンドごとの回数取得SQL
 ```
 SELECT date, command_type, COUNT(*) as count
