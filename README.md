@@ -129,7 +129,15 @@ id          date        user_id      command_type  created_at
 87          2023-06-28  UXXXXXXXXXX  gpt           2023-06-28 10:54:41
 ```
 
-### 日付ごとのコマンドごとの回数取得SQL
+### 日付ごとの利用回数取得SQL
+```
+SELECT date, COUNT(*) as count
+FROM usage_logs
+GROUP BY date
+ORDER BY date DESC;
+```
+
+### 日付ごとのコマンドごとの利用回数取得SQL
 ```
 SELECT date, command_type, COUNT(*) as count
 FROM usage_logs
@@ -137,7 +145,7 @@ GROUP BY date, command_type
 ORDER BY date DESC;
 ```
 
-### ユーザーごとのコマンドごとの回数取得SQL
+### ユーザーごとのコマンドごとの利用回数取得SQL
 ```
 SELECT user_id, COUNT(*) as count
 FROM usage_logs
