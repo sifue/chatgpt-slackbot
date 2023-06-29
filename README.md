@@ -131,26 +131,17 @@ id          date        user_id      command_type  created_at
 
 ### 日付ごとの利用回数取得SQL
 ```
-SELECT date, COUNT(*) as count
-FROM usage_logs
-GROUP BY date
-ORDER BY date DESC;
+SELECT date, COUNT(*) as count FROM usage_logs GROUP BY date ORDER BY date DESC;
 ```
 
 ### 日付ごとのコマンドごとの利用回数取得SQL
 ```
-SELECT date, command_type, COUNT(*) as count
-FROM usage_logs
-GROUP BY date, command_type
-ORDER BY date DESC;
+SELECT date, command_type, COUNT(*) as count FROM usage_logs GROUP BY date, command_type ORDER BY date DESC;
 ```
 
 ### ユーザーごとのコマンドごとの利用回数取得SQL
 ```
-SELECT user_id, COUNT(*) as count
-FROM usage_logs
-GROUP BY user_id
-ORDER BY count DESC;
+SELECT user_id, COUNT(*) as count FROM usage_logs GROUP BY user_id ORDER BY count DESC;
 ```
 
 ## LICNESE
