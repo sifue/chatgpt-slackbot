@@ -259,7 +259,8 @@ def message_reset(client, message, say, context, logger):
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context, logger):
     """ヘルプを表示する"""
-    help_message = f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。「Web検索をして～して」または「Slack検索をして～して」と伝えることでそれを検索結果を考慮した受け答えができます。会話の履歴は、{gpt_function_calling_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。\n" +\
+    help_message = "ChatGPTは13歳以上の方しか利用できず、18歳未満の方は必ず保護者の同意の元で利用してください。このボットで利用できるコマンドは以下のとおりです。\n" +\
+     f"`!gpt [ボットに伝えたいメッセージ]` の形式でChatGPTのAIと会話できます。「Web検索をして～して」または「Slack検索をして～して」と伝えることでそれを検索結果を考慮した受け答えができます。会話の履歴は、{gpt_function_calling_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。\n" +\
         "`!gpt-rs` 利用しているチャンネルにおけるユーザーの会話の履歴をリセットします。\n" +\
         "`!gpt-ua [@ユーザー名]` 直近のパブリックチャンネルでの発言より、どのようなユーザーであるのかを分析します。\n" +\
         "`!gpt-ca [#チャンネル名]` パブリックチャンネルの直近の投稿内容から、どのようなチャンネルであるのかを分析します。\n" +\
