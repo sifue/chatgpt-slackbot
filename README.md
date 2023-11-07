@@ -15,6 +15,8 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 - パブリックチャンネルの検索結果を踏まえて質問に答える: !gpt-q \[質問\]
 - AI(GPT-4)との会話: !gpt-4 \[会話内容\]
 - AI(GPT-4)との会話の履歴をリセット: !gpt-4-rs
+- AI(GPT-4V)との添付画像を含めた会話(画像は履歴に引き継ぎません): !gpt-4v \[会話内容+画像添付\]
+- AI(GPT-4V)との会話の履歴をリセット: !gpt-4v-rs
 - 使い方を表示: !gpt-help
 
 セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。
@@ -36,6 +38,8 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 
 ##### Bot Token Scopes
 - chat:write
+- files:write (今後のDALL-Eとの統合のため)
+- files:read (GPT-4Vのため)
 
 ##### User Token Scopes
 - search:read
@@ -61,6 +65,7 @@ SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 USE_ONLY_PUBLIC_CHANNEL=False
 USE_GPT_4_COMMAND=False
+USE_GPT_4V_COMMAND=False
 DAILY_USER_LIMIT=
 ```
 

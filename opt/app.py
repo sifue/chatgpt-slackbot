@@ -7,6 +7,7 @@ import openai
 import re
 from gpt_function_calling import GPT_Function_Calling_CommandExecutor
 from gpt_4 import GPT_4_CommandExecutor
+from gpt_4v import GPT_4V_CommandExecutor
 from util import get_history_identifier, get_user_identifier, calculate_num_tokens, calculate_num_tokens_by_prompt, say_ts, check_availability, check_daily_user_limit
 from channel_analysis import say_channel_analysis
 from websearch import say_with_websearch
@@ -35,6 +36,7 @@ usage_log = Usage_Logs()
 using_user_set = set()
 
 gpt_4_command_executor = GPT_4_CommandExecutor(openai)
+gpt_4v_command_executor = GPT_4V_CommandExecutor(openai)
 gpt_function_calling_executor = GPT_Function_Calling_CommandExecutor(openai)
 
 
@@ -256,6 +258,64 @@ def message_reset(client, message, say, context, logger):
         say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
 
 
+@app.message(re.compile(r"^!gpt-4v ((.|\s)*)$"))
+def message_gpt_4v(client, message, say, context, logger):
+    """GPT-4Vの会話をする"""
+    if not strtobool(os.getenv("USE_GPT_4V_COMMAND")):  # GPT-4Vコマンドを利用できない場合は終了
+        return
+
+    if not check_availability(message, logger):
+        notice_not_available_in_private_message(client, message, logger)
+        return
+
+    if not check_daily_user_limit(message, usage_log):
+        notice_daily_limit_message(client, message, logger)
+        return
+
+    try:
+        if message["user"] in using_user_set:  # 既に自身が利用中の場合
+            say_ts(client, message,
+                   f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
+        else:
+            using_user_set.add(message["user"])
+            gpt_4v_command_executor.execute(
+                client, message, say, context, logger)
+            using_user_set.remove(message["user"])  # ユーザーを解放
+            usage_log.save(message['user'], Command_Type.GPT_4V.value)  # ログ保存
+    except Exception as e:
+        using_user_set.remove(message["user"])  # ユーザーを解放
+        logger.error(traceback.format_exc())
+        say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
+        # エラーを発生させた人の会話の履歴をリセットをする
+        gpt_4v_command_executor.execute_reset(
+            client, message, say, context, logger)
+
+
+@app.message(re.compile(r"^!gpt-4v-rs$"))
+def message_reset(client, message, say, context, logger):
+    """GPT-4Vの会話履歴をリセットする"""
+    if not strtobool(os.getenv("USE_GPT_4V_COMMAND")):  # GPT-4コマンドを利用できない場合は終了
+        return
+
+    if not check_availability(message, logger):
+        notice_not_available_in_private_message(client, message, logger)
+        return
+
+    try:
+        if message["user"] in using_user_set:  # 既に自身が利用中の場合
+            say_ts(client, message,
+                   f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
+        else:
+            using_user_set.add(message["user"])
+            gpt_4v_command_executor.execute_reset(
+                client, message, say, context, logger)
+            using_user_set.remove(message["user"])  # ユーザーを解放
+    except Exception as e:
+        using_user_set.remove(message["user"])  # ユーザーを解放
+        logger.error(traceback.format_exc())
+        say_ts(client, message, f"エラーが発生しました。やり方を変えて再度試してみてください。 Error: {e}")
+
 @app.message(re.compile(r"^!gpt-help$"))
 def message_help(client, message, say, context, logger):
     """ヘルプを表示する"""
@@ -270,6 +330,11 @@ def message_help(client, message, say, context, logger):
     if strtobool(os.getenv("USE_GPT_4_COMMAND")):  # GPT-4コマンドを利用する場合
         help_message += f"`!gpt-4 [ボットに伝えたいメッセージ]` の形式でGPT-4のAIと会話できます。会話の履歴は、{gpt_4_command_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。(注. 知識は多いですが動作は遅く、利用制限があり使えないこともあります)\n"
         help_message += "`!gpt-4-rs` 利用しているチャンネルにおけるユーザーのGPT-4との会話の履歴をリセットします。\n"
+
+    if strtobool(os.getenv("USE_GPT_4V_COMMAND")):  # GPT-4Vコマンドを利用する場合
+        help_message += f"`!gpt-4v [ボットに伝えたいメッセージ]` の形式でGPT-4VのAIと会話できます。会話の履歴は、{gpt_4v_command_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。(注. 知識は多いですが動作は遅く、利用制限があり使えないこともあります)\n"
+        help_message += "`!gpt-4v-rs` 利用しているチャンネルにおけるユーザーのGPT-4Vとの会話の履歴をリセットします。\n"
+
 
     say_ts(client, message, help_message)
 
