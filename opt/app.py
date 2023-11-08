@@ -332,7 +332,7 @@ def message_help(client, message, say, context, logger):
         help_message += "`!gpt-4-rs` 利用しているチャンネルにおけるユーザーのGPT-4との会話の履歴をリセットします。\n"
 
     if strtobool(os.getenv("USE_GPT_4V_COMMAND")):  # GPT-4Vコマンドを利用する場合
-        help_message += f"`!gpt-4v [ボットに伝えたいメッセージ]` の形式でGPT-4VのAIと添付ファイル(複数可)とあわせて会話できます。会話の履歴は、{gpt_4v_command_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。(注. 会話の履歴に画像は含まれません)\n"
+        help_message += f"`!gpt-4v [ボットに伝えたいメッセージ]` の形式でGPT-4VのAIと添付ファイル画像(複数可)とあわせて会話できます。会話の履歴は、{gpt_4v_command_executor.INPUT_MAX_TOKEN_SIZE}トークンまで保持します。(注. 会話の履歴に画像は含まれません)\n"
         help_message += "`!gpt-4v-rs` 利用しているチャンネルにおけるユーザーのGPT-4Vとの会話の履歴をリセットします。\n"
 
 
