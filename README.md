@@ -69,7 +69,7 @@ USE_GPT_4V_COMMAND=False
 DAILY_USER_LIMIT=
 ```
 
-NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。DAILY_USER_LIMITは、1日にユーザーが利用できる上限回数を設定できる機能。整数値で設定する。空の場合は制限なし。
+NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。USE_GPT_4V_COMMANDはGPT-4Vで会話するコマンドを利用するか。DAILY_USER_LIMITは、1日にユーザーが利用できる上限回数を設定できる機能。整数値で設定する。空の場合は制限なし。
 
 あとは以下を実行してイメージをビルド&実行。
 
