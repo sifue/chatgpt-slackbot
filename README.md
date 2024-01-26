@@ -44,12 +44,16 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 ##### User Token Scopes
 - search:read
 
-#### Event SubscriptionsのSubscribe to Bot Events で要求するスコープ
+##### Event SubscriptionsのSubscribe to Bot Events で要求するスコープ
 
 - message.channels
 - message.groups
 - message.im
 - message.mpim
+
+#### manifestファイルでの設定
+
+[config/manifest.yml](config/manifest.yml)をSlack Botの設定画面で読み込むことで、上記のスコープを簡単に設定できます。
 
 ### インストール方法
 Python3.9.6以上で動作を確認済み。
@@ -60,7 +64,7 @@ Python3.9.6以上で動作を確認済み。
 ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
 SLACK_BOT_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
-SLACK_USER_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
+SLACK_USER_TOKEN=xoxp-xxxxxxxxxxxxxxxxx
 SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 USE_ONLY_PUBLIC_CHANNEL=False
@@ -110,7 +114,7 @@ CREATE INDEX IF NOT EXISTS idx_date_user ON usage_logs (date, user_id)
 sqlite3 slackbot.db "select * from usage_logs order by created_at desc limit 100;"
 ```
 
-### SQlite3のDBへの接続およびび表の整形の仕方
+### SQlite3のDBへの接続および表の整形の仕方
 
 sqlite3コマンドで接続して以下のようにすることで表の整形ができる
 
@@ -149,5 +153,5 @@ SELECT date, command_type, COUNT(*) as count FROM usage_logs GROUP BY date, comm
 SELECT user_id, COUNT(*) as count FROM usage_logs GROUP BY user_id ORDER BY count DESC;
 ```
 
-## LICNESE
+## LICENSE
 The MIT License

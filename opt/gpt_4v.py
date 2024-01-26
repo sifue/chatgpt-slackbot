@@ -25,7 +25,7 @@ class GPT_4V_CommandExecutor():
         history_idetifier = get_history_identifier(
             using_team, using_channel, message["user"])
         user_identifier = get_user_identifier(using_team, message["user"])
-        
+
         prompt = context["matches"][0]
 
         contents = [
@@ -72,7 +72,7 @@ class GPT_4V_CommandExecutor():
             say_ts(client, message, messege_out_of_token_size)
             logger.info(messege_out_of_token_size)
             return
-        
+
         say_ts(client, message, f"GPT-4Vで <@{message['user']}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
         # ChatCompletionを呼び出す
@@ -118,4 +118,3 @@ class GPT_4V_CommandExecutor():
 
         logger.info(f"GPT-4Vの <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
         say_ts(client, message, f"GPT-4Vの <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
-
