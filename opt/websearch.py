@@ -3,6 +3,7 @@ from util import get_user_identifier, calculate_num_tokens_by_prompt, say_ts
 import datetime
 import os
 import re
+import asyncio
 
 import urllib3
 
@@ -52,14 +53,7 @@ def say_with_websearch(client_openai, client, message, say, using_user, question
 
     logger.info(f"user: {message['user']}, query: `{query}`")
 
-    search_results = []
-    from duckduckgo_search import DDGS
-    with DDGS() as ddgs:
-        for r in ddgs.text(query, region='wt-wt', safesearch='on', timelimit='y'):
-            logger.debug(f"search_result: {r}")
-            search_results.append(r)
-            if len(search_results) >= 20: # 検索結果テキストが多く返るため一旦20件で様子見
-                    break
+    search_results = asyncio.run(get_web_search_result(query, logger))
 
     if search_results is None or len(search_results) == 0:
         say_ts(client, message, f"「{query}」に関する検索結果が見つかりませんでした。")
@@ -107,3 +101,15 @@ def say_with_websearch(client_openai, client, message, say, using_user, question
     content = chat_gpt_response.choices[0].message.content + link_references
     say_ts(client, message, content)
     logger.info(f"user: {message['user']}, content: {content}")
+
+async def get_web_search_result(query: str, logger) -> List[Dict[str, str]]:
+    search_results = []
+    from duckduckgo_search import DDGS
+    with DDGS() as ddgs:
+        for r in ddgs.text(query, region='wt-wt', safesearch='on', timelimit='y'):
+            logger.debug(f"search_result: {r}")
+            search_results.append(r)
+            if len(search_results) >= 20: # 検索結果テキストが多く返るため一旦20件で様子見
+                    break
+    
+    return search_results

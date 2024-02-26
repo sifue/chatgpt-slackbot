@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import urllib3
 import os
+import asyncio
 
 
 class GPT_Function_Calling_CommandExecutor():
@@ -52,7 +53,7 @@ class GPT_Function_Calling_CommandExecutor():
         self.client_openai = client_openai
 
 
-    def get_web_search_result(self, query):
+    async def get_web_search_result(self, query):
         """Web検索を実行する、Function Calling用実装"""
         search_results = []
         from duckduckgo_search import DDGS
@@ -159,7 +160,7 @@ class GPT_Function_Calling_CommandExecutor():
 
             # Function Callingの実行
             if function_name == "get_web_search_result":
-                function_response = self.get_web_search_result(query)
+                function_response = asyncio.run(self.get_web_search_result(query))
                 search_results = function_response["search_results"]
 
                 link_references = []
