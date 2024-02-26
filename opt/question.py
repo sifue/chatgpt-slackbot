@@ -11,6 +11,7 @@ MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
+
 def say_answer(client_openai, client, message, say, using_user, question, logger):
     """
     質問の答えのメッセージを送信する

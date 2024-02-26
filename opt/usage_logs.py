@@ -2,6 +2,7 @@ import sqlite3
 from datetime import datetime
 from enum import Enum
 
+
 class Usage_Logs:
     '''
     ユーザーの利用ログを保存、取得するActiveRecordタイプの実装クラス
@@ -28,7 +29,7 @@ class Usage_Logs:
                 created_at text
             )
         ''')
-        
+
         # (date, user_id)にインデックスを作成
         c.execute('''
             CREATE INDEX IF NOT EXISTS idx_date_user ON usage_logs (date, user_id)
@@ -38,7 +39,7 @@ class Usage_Logs:
 
     def save(self, user_id, command_type):
         c = self.conn.cursor()
-        
+
         # 現在日時を取得
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         date = datetime.now().strftime('%Y-%m-%d')
@@ -48,9 +49,9 @@ class Usage_Logs:
             INSERT INTO usage_logs (date, user_id, command_type, created_at)
             VALUES (?, ?, ?, ?)
         ''', (date, user_id, command_type, now))
-        
+
         self.conn.commit()
-    
+
     def get_num_logs(self, user_id):
         c = self.conn.cursor()
 
@@ -83,4 +84,3 @@ class Command_Type(Enum):
     GPT_Q = 'gpt-q'
     GPT_4 = 'gpt-4'
     GPT_4V = 'gpt-4v'
-    

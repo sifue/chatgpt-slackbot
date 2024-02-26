@@ -1,6 +1,7 @@
 from util import get_history_identifier, get_user_identifier, calculate_num_tokens, calculate_num_tokens_by_prompt, say_ts, check_availability
 from typing import List, Dict
 
+
 class GPT_4_CommandExecutor():
     """GPT-4を使って会話をするコマンドの実行クラス"""
 
@@ -38,7 +39,7 @@ class GPT_4_CommandExecutor():
             say_ts(client, message, messege_out_of_token_size)
             logger.info(messege_out_of_token_size)
             return
-        
+
         say_ts(client, message, f"GPT-4で <@{message['user']}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
         # ChatCompletionを呼び出す
@@ -81,6 +82,3 @@ class GPT_4_CommandExecutor():
 
         logger.info(f"GPT-4の <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
         say_ts(client, message, f"GPT-4の <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
-
-
-
