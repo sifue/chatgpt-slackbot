@@ -3,7 +3,7 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_bolt import App
 from distutils.util import strtobool
 import os
-import openai
+from openai import OpenAI
 import re
 from gpt_function_calling import GPT_Function_Calling_CommandExecutor
 from gpt_4 import GPT_4_CommandExecutor
@@ -23,8 +23,9 @@ logging.basicConfig(level=logging.INFO, format=fmt)
 
 load_dotenv()
 
-openai.organization = os.getenv("ORGANAZTION_ID")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client_openai = OpenAI(
+  api_key=os.environ['OPENAI_API_KEY'],
+)
 
 # ボットトークンとソケットモードハンドラーを使ってアプリを初期化
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
@@ -35,9 +36,9 @@ usage_log = Usage_Logs()
 # 現在使用中のユーザーのセット、複数リクエストを受けると履歴が壊れることがあるので、一つのユーザーに対しては一つのリクエストしか受け付けないようにする
 using_user_set = set()
 
-gpt_4_command_executor = GPT_4_CommandExecutor(openai)
-gpt_4v_command_executor = GPT_4V_CommandExecutor(openai)
-gpt_function_calling_executor = GPT_Function_Calling_CommandExecutor(openai)
+gpt_4_command_executor = GPT_4_CommandExecutor(client_openai)
+gpt_4v_command_executor = GPT_4V_CommandExecutor(client_openai)
+gpt_function_calling_executor = GPT_Function_Calling_CommandExecutor(client_openai)
 
 
 @app.message(re.compile(r"^!gpt ((.|\s)*)$"))
@@ -108,7 +109,7 @@ def message_user_analysis(client, message, say, context, logger):
                    f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user_set.add(message["user"])
-            say_user_analysis(client, message, say,
+            say_user_analysis(client_openai, client, message, say,
                               message["user"], context["matches"][0], logger)
             using_user_set.remove(message["user"])  # ユーザーを解放
             usage_log.save(message['user'], Command_Type.GPT_UA.value)
@@ -135,7 +136,7 @@ def message_channel_analysis(client, message, say, context, logger):
                    f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user_set.add(message["user"])
-            say_channel_analysis(client, message, say,
+            say_channel_analysis(client_openai, client, message, say,
                                  message["user"], context["matches"][0], logger)
             using_user_set.remove(message["user"])  # ユーザーを解放
             usage_log.save(message['user'], Command_Type.GPT_CA.value)
@@ -162,7 +163,7 @@ def message_websearch(client, message, say, context, logger):
                    f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user_set.add(message["user"])
-            say_with_websearch(client, message, say,
+            say_with_websearch(client_openai, client, message, say,
                                message["user"], context["matches"][0], logger)
             using_user_set.remove(message["user"])  # ユーザーを解放
             usage_log.save(message['user'], Command_Type.GPT_W.value)
@@ -189,7 +190,7 @@ def message_question(client, message, say, context, logger):
                    f"<@{message['user']}> さんの返答に対応中なのでお待ちください。")
         else:
             using_user_set.add(message["user"])
-            say_answer(client, message, say,
+            say_answer(client_openai, client, message, say,
                        message["user"], context["matches"][0], logger)
             using_user_set.remove(message["user"])  # ユーザーを解放
             usage_log.save(message['user'], Command_Type.GPT_Q.value)

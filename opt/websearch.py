@@ -1,7 +1,6 @@
 from typing import List, Dict
 from util import get_user_identifier, calculate_num_tokens_by_prompt, say_ts
 import datetime
-import openai
 import os
 import re
 
@@ -14,7 +13,7 @@ MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def say_with_websearch(client, message, say, using_user, question, logger):
+def say_with_websearch(client_openai, client, message, say, using_user, question, logger):
     """
     質問の答えのメッセージを送信する
     """
@@ -27,7 +26,7 @@ def say_with_websearch(client, message, say, using_user, question, logger):
 
     # ChatCompletionから適切なクエリを聞く
     query_ask_prompt = f"「{question}」という質問をDuckDuckGoの検索で調べるときに適切な検索クエリを教えてください。検索クエリとは単一の検索のための単語、または、複数の検索のための単語を半角スペースで繋げた文字列です。検索クエリを##########検索クエリ##########の形式で教えてください。"
-    query_gpt_response = openai.ChatCompletion.create(
+    query_gpt_response = client_openai.chat.completions.create(
         model="gpt-3.5-turbo-16k",
         messages=[{"role": "user", "content": query_ask_prompt}],
         top_p=1,
@@ -40,7 +39,7 @@ def say_with_websearch(client, message, say, using_user, question, logger):
         user=userIdentifier
     )
     logger.debug(query_gpt_response)
-    query_gpt_response_content = query_gpt_response["choices"][0]["message"]["content"]
+    query_gpt_response_content = query_gpt_response.choices[0].message.content
 
     logger.debug(f"queryGPTResponseContent: {query_gpt_response_content}")
     matches = re.match(
@@ -91,7 +90,7 @@ def say_with_websearch(client, message, say, using_user, question, logger):
 
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
-    chat_gpt_response = openai.ChatCompletion.create(
+    chat_gpt_response = client_openai.chat.completions.create(
         model="gpt-3.5-turbo-16k",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
@@ -105,6 +104,6 @@ def say_with_websearch(client, message, say, using_user, question, logger):
     )
     logger.debug(chat_gpt_response)
 
-    content = chat_gpt_response["choices"][0]["message"]["content"] + link_references
+    content = chat_gpt_response.choices[0].message.content + link_references
     say_ts(client, message, content)
     logger.info(f"user: {message['user']}, content: {content}")
