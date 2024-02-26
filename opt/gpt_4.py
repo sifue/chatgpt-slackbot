@@ -9,9 +9,9 @@ class GPT_4_CommandExecutor():
     COMPLETION_MAX_TOKEN_SIZE = 2048  # ChatCompletionの出力の最大トークンサイズ
     INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-    def __init__(self, openai):
+    def __init__(self, client_openai):
         self.history_dict : Dict[str, List[Dict[str, str]]] = {}
-        self.openai = openai
+        self.client_openai = client_openai
 
     def execute(self, client, message, say, context, logger):
         """GPT-4を使って会話をするコマンドの実行メソッド"""
@@ -44,7 +44,7 @@ class GPT_4_CommandExecutor():
 
         # ChatCompletionを呼び出す
         logger.info(f"user: {message['user']}, prompt: {prompt}")
-        response = self.openai.ChatCompletion.create(
+        response = self.client_openai.chat.completions.create(
             model="gpt-4",
             messages=history_array,
             top_p=1,
@@ -59,7 +59,7 @@ class GPT_4_CommandExecutor():
         logger.debug(response)
 
         # ヒストリーを新たに追加
-        new_response_message = response["choices"][0]["message"]
+        new_response_message = response.choices[0].message
         history_array.append(new_response_message)
 
         # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
@@ -67,8 +67,8 @@ class GPT_4_CommandExecutor():
             history_array = history_array[1:]
         self.history_dict[history_idetifier] = history_array # ヒストリーを更新
 
-        say_ts(client, message, new_response_message["content"])
-        logger.info(f"user: {message['user']}, content: {new_response_message['content']}")
+        say_ts(client, message, new_response_message.content)
+        logger.info(f"user: {message['user']}, content: {new_response_message.content}")
 
     def execute_reset(self, client, message, say, context, logger):
         """GPT-4を使って会話履歴のリセットをするコマンドの実行メソッド"""

@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import urllib3
 import os
+import asyncio
 
 
 class GPT_Function_Calling_CommandExecutor():
@@ -47,12 +48,12 @@ class GPT_Function_Calling_CommandExecutor():
         COMPLETION_MAX_TOKEN_SIZE - \
         calculate_num_tokens_by_prompt(json.dumps(FUNCTIONS, ensure_ascii=False))
 
-    def __init__(self, openai):
+    def __init__(self, client_openai):
         self.history_dict: Dict[str, List[Dict[str, str]]] = {}
-        self.openai = openai
+        self.client_openai = client_openai
 
 
-    def get_web_search_result(self, query):
+    async def get_web_search_result(self, query):
         """Web検索を実行する、Function Calling用実装"""
         search_results = []
         from duckduckgo_search import DDGS
@@ -125,7 +126,7 @@ class GPT_Function_Calling_CommandExecutor():
 
         # ChatCompletionを呼び出す
         logger.info(f"user: {message['user']}, prompt: {prompt}")
-        response = self.openai.ChatCompletion.create(
+        response = self.client_openai.chat.completions.create(
             model="gpt-3.5-turbo-16k-0613",
             messages=history_array,
             top_p=1,
@@ -142,24 +143,24 @@ class GPT_Function_Calling_CommandExecutor():
         logger.debug(response)
 
         # ヒストリーを新たに追加
-        new_response_message = response["choices"][0]["message"]
+        new_response_message = response.choices[0].message
         history_array.append(new_response_message)
 
         # もしFunction Callingがあれば再度問い合わせる
-        if new_response_message.get("function_call"):
-            function_name = new_response_message["function_call"]["name"]
+        if new_response_message.function_call:
+            function_name = new_response_message.function_call.name
             function_response = []
             search_results = []
 
             function_args = json.loads(
-                new_response_message["function_call"]["arguments"])
+                new_response_message.function_call.arguments)
             query = function_args.get("query")
             say_ts(client, message,
                    f"関数 `{function_name}` を引数 `query={query}` で呼び出し中...")
 
             # Function Callingの実行
             if function_name == "get_web_search_result":
-                function_response = self.get_web_search_result(query)
+                function_response = asyncio.run(self.get_web_search_result(query))
                 search_results = function_response["search_results"]
 
                 link_references = []
@@ -214,7 +215,7 @@ class GPT_Function_Calling_CommandExecutor():
                 return
 
             # ChatCompletionを呼び出す
-            response = self.openai.ChatCompletion.create(
+            response = self.client_openai.chat.completions.create(
                 model="gpt-3.5-turbo-16k-0613",
                 messages=history_array,
                 top_p=1,
@@ -227,7 +228,7 @@ class GPT_Function_Calling_CommandExecutor():
                 user=user_identifier
             )
             # ヒストリーを新たに追加
-            new_response_message = response["choices"][0]["message"]
+            new_response_message = response.choices[0].message
             history_array.append(new_response_message)
 
         # トークンのサイズがINPUT_MAX_TOKEN_SIZEを超えたら古いものを削除
@@ -235,9 +236,9 @@ class GPT_Function_Calling_CommandExecutor():
             history_array = history_array[1:]
         self.history_dict[history_idetifier] = history_array  # ヒストリーを更新
 
-        say_ts(client, message, new_response_message["content"])
+        say_ts(client, message, new_response_message.content)
         logger.info(
-            f"user: {message['user']}, content: {new_response_message['content']}")
+            f"user: {message['user']}, content: {new_response_message.content}")
 
     def execute_reset(self, client, message, say, context, logger):
         """ChatGPT Function Callingを使った会話履歴のリセットをするコマンドの実行メソッド"""

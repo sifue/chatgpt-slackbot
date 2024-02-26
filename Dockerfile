@@ -18,6 +18,6 @@ RUN python -m pip install python-dotenv --upgrade
 RUN python -m pip install openai==0.28
 RUN python -m pip install tiktoken --upgrade
 RUN python -m pip install slack_bolt --upgrade
-RUN python -m pip install duckduckgo_search==3.8.3
+RUN python -m pip install duckduckgo_search --upgrade
 
 CMD cd /root/opt/ && python app.py

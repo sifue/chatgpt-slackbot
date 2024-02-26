@@ -61,7 +61,6 @@ Python3.9.6以上で動作を確認済み。
 `opt/.env` ファイルをフォルダ内に作成して、自分のクレデンシャル情報を記述
 
 ```
-ORGANAZTION_ID=org-xxxxxxxxxxxxxxxxx
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
 SLACK_BOT_TOKEN=xoxb-xxxxxxxxxxxxxxxxx
 SLACK_USER_TOKEN=xoxp-xxxxxxxxxxxxxxxxx

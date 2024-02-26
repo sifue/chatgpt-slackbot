@@ -1,7 +1,6 @@
 from typing import List, Dict
 from util import get_user_identifier, calculate_num_tokens_by_prompt, calculate_num_tokens, say_ts
 import datetime
-import openai
 import os
 
 from dotenv import load_dotenv
@@ -11,7 +10,7 @@ MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
-def say_channel_analysis(client, message, say, using_user, target_channel, logger):
+def say_channel_analysis(client_openai, client, message, say, using_user, target_channel, logger):
     """
     チャンネル分析のメッセージを送信する
     """
@@ -48,7 +47,7 @@ def say_channel_analysis(client, message, say, using_user, target_channel, logge
 
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
-    chat_gpt_response = openai.ChatCompletion.create(
+    chat_gpt_response = client_openai.chat.completions.create(
         model="gpt-3.5-turbo-16k",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
@@ -62,5 +61,5 @@ def say_channel_analysis(client, message, say, using_user, target_channel, logge
     )
     logger.debug(chat_gpt_response)
 
-    say_ts(client, message, chat_gpt_response["choices"][0]["message"]["content"])
-    logger.info(f"user: {message['user']}, content: {chat_gpt_response['choices'][0]['message']['content']}")
+    say_ts(client, message, chat_gpt_response.choices[0].message.content)
+    logger.info(f"user: {message['user']}, content: {chat_gpt_response.choices[0].message.content}")
