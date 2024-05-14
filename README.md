@@ -15,8 +15,8 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 - パブリックチャンネルの検索結果を踏まえて質問に答える: !gpt-q \[質問\]
 - AI(GPT-4)との会話: !gpt-4 \[会話内容\]
 - AI(GPT-4)との会話の履歴をリセット: !gpt-4-rs
-- AI(GPT-4V)との添付画像を含めた会話(画像は履歴に引き継ぎません): !gpt-4v \[会話内容+画像添付\]
-- AI(GPT-4V)との会話の履歴をリセット: !gpt-4v-rs
+- AI(GPT-4o)との添付画像を含めた会話(画像は履歴に引き継ぎません): !gpt-4o \[会話内容+画像添付\]
+- AI(GPT-4o)との会話の履歴をリセット: !gpt-4o-rs
 - 使い方を表示: !gpt-help
 
 セッションの概念はないが、API側には不正行為検出のためにSlack上のユーザーIDを渡している。
@@ -39,7 +39,7 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 ##### Bot Token Scopes
 - chat:write
 - files:write (今後のDALL-Eとの統合のため)
-- files:read (GPT-4Vのため)
+- files:read (GPT-4oのため)
 
 ##### User Token Scopes
 - search:read
@@ -68,11 +68,13 @@ SLACK_APP_TOKEN=xapp-1-xxxxxxxxxxxxxxxxx
 NAME_SUFFIX=-main
 USE_ONLY_PUBLIC_CHANNEL=False
 USE_GPT_4_COMMAND=False
-USE_GPT_4V_COMMAND=False
+USE_GPT_4O_COMMAND=False
 DAILY_USER_LIMIT=
 ```
 
-NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。USE_GPT_4V_COMMANDはGPT-4Vで会話するコマンドを利用するか。DAILY_USER_LIMITは、1日にユーザーが利用できる上限回数を設定できる機能。整数値で設定する。空の場合は制限なし。
+NAME_SUFFIXは複数、Dockerコンテナを起動する際にコンテナ名がかぶらないようにするためのサフィックス。USE_ONLY_PUBLIC_CHANNELはパブリックチャンネルのみに利用を制限するか。USE_GPT_4_COMMANDはGPT-4で会話するコマンドを利用するか。USE_GPT_4O_COMMANDはGPT-4Oで会話するコマンドを利用するか。DAILY_USER_LIMITは、1日にユーザーが利用できる上限回数を設定できる機能。整数値で設定する。空の場合は制限なし。
+
+なお、過去USE_GPT_4V_COMMANDの設定がありましたがGPT-4oのリリースとともに廃止されました。
 
 あとは以下を実行してイメージをビルド&実行。
 

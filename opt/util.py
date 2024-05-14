@@ -35,7 +35,7 @@ def calculate_num_tokens(
             if hasattr(message, "items"):
                 for key, value in message.items():
 
-                    if isinstance(value, list): # GPT-4Vの場合はcontentが複数ある場合があるのでその分岐
+                    if isinstance(value, list): # GPT-4oの場合はcontentが複数ある場合があるのでその分岐
                         for v in value:
                             for in_value_key, in_value_value in v.items():
                                 if (in_value_key == "text" or in_value_key == "type")and isinstance(in_value_value, str):

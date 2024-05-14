@@ -4,10 +4,10 @@ import os
 import requests
 import base64
 
-class GPT_4V_CommandExecutor():
-    """GPT-4Vを使って添付画像を含めて会話をするコマンドの実行クラス"""
+class GPT_4O_CommandExecutor():
+    """GPT-4oを使って添付画像を含めて会話をするコマンドの実行クラス"""
 
-    MAX_TOKEN_SIZE = 8192  # トークンの最大サイズ
+    MAX_TOKEN_SIZE = 128000  # トークンの最大サイズ
     COMPLETION_MAX_TOKEN_SIZE = 2048  # ChatCompletionの出力の最大トークンサイズ
     INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
@@ -16,7 +16,7 @@ class GPT_4V_CommandExecutor():
         self.client_openai = client_openai
 
     def execute(self, client, message, say, context, logger):
-        """GPT-4Vを使って会話をするコマンドの実行メソッド"""
+        """GPT-4oを使って会話をするコマンドの実行メソッド"""
         if "team" in message:
             using_team = message["team"]
         else:
@@ -73,12 +73,12 @@ class GPT_4V_CommandExecutor():
             logger.info(messege_out_of_token_size)
             return
 
-        say_ts(client, message, f"GPT-4Vで <@{message['user']}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
+        say_ts(client, message, f"GPT-4oで <@{message['user']}> さんの以下の発言に対応中（履歴数: {len(history_array)} 、トークン数: {calculate_num_tokens(history_array)}）\n```\n{prompt}\n```")
 
         # ChatCompletionを呼び出す
         logger.info(f"user: {message['user']}, prompt: {prompt}")
         response = self.client_openai.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=history_array,
             top_p=1,
             n=1,
@@ -104,7 +104,7 @@ class GPT_4V_CommandExecutor():
         logger.info(f"user: {message['user']}, content: {new_response_message.content}")
 
     def execute_reset(self, client, message, say, context, logger):
-        """GPT-4Vを使って会話履歴のリセットをするコマンドの実行メソッド"""
+        """GPT-4oを使って会話履歴のリセットをするコマンドの実行メソッド"""
         if "team" in message:
             using_team = message["team"]
         else:
@@ -116,5 +116,5 @@ class GPT_4V_CommandExecutor():
         # 履歴をリセットをする
         self.history_dict[historyIdetifier] = []
 
-        logger.info(f"GPT-4Vの <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
-        say_ts(client, message, f"GPT-4Vの <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+        logger.info(f"GPT-4oの <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")
+        say_ts(client, message, f"GPT-4oの <@{message['user']}> さんの <#{using_channel}> での会話の履歴をリセットしました。")

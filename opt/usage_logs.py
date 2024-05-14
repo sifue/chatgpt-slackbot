@@ -83,4 +83,4 @@ class Command_Type(Enum):
     GPT_W = 'gpt-w'
     GPT_Q = 'gpt-q'
     GPT_4 = 'gpt-4'
-    GPT_4V = 'gpt-4v'
+    GPT_4O = 'gpt-4o'

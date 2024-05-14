@@ -58,7 +58,7 @@ class GPT_Function_Calling_CommandExecutor():
         search_results = []
         from duckduckgo_search import DDGS
         with DDGS() as ddgs:
-            for r in ddgs.text(query, region='wt-wt', safesearch='on', timelimit='y'):
+            for r in ddgs.text(query, region='wt-wt', safesearch='on', timelimit='y', max_results=10):
                 search_results.append(r)
                 if len(search_results) >= 10:
                     break
