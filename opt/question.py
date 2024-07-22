@@ -7,7 +7,7 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+MAX_TOKEN_SIZE = 128000  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
@@ -26,7 +26,7 @@ def say_answer(client_openai, client, message, say, using_user, question, logger
     # ChatCompletionから適切なクエリを聞く
     query_ask_prompt = f"「{question}」という質問をSlackの検索で調べるときに適切な検索クエリを教えてください。検索クエリとは単一の検索のための単語、または、複数の検索のための単語を半角スペースで繋げた文字列です。検索クエリを##########検索クエリ##########の形式で教えてください。"
     query_gpt_response = client_openai.chat.completions.create(
-        model="gpt-3.5-turbo-16k",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": query_ask_prompt}],
         top_p=1,
         n=1,
@@ -50,13 +50,14 @@ def say_answer(client_openai, client, message, say, using_user, question, logger
         query = matches.group(2)
 
     logger.debug(f"query: `{query}`")
+    # Slack検索数は100件までで固定
     search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                             query=query, count=100, highlight=False)
     matches = search_response["messages"]["matches"]
 
     prompt = f"「{question}」という質問の答えを、以下のSlack上の「{query}」の検索結果の情報も加味し、検討して答えてください。またその根拠も答えてください。\n\n----------------\n\n"
     for match in matches:
-        if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False:
+        if match["channel"]["is_private"] == False and match["channel"]["is_mpim"] == False and "username" in match:
             formated_message = f"""
 投稿チャンネル: {match["channel"]["name"]}
 投稿日時: {datetime.datetime.fromtimestamp(float(match["ts"]))}
@@ -71,7 +72,7 @@ def say_answer(client_openai, client, message, say, using_user, question, logger
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
     chat_gpt_response = client_openai.chat.completions.create(
-        model="gpt-3.5-turbo-16k",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
         n=1,

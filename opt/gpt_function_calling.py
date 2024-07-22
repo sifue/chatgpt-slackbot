@@ -41,7 +41,7 @@ class GPT_Function_Calling_CommandExecutor():
         },
     ]
 
-    MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+    MAX_TOKEN_SIZE = 128000  # トークンの最大サイズ
     COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
     # ChatCompletionの入力に使うトークンサイズ、FUNCTION分はJSON化してプロンプトとして雑に計算する(トークン計算方法不明のため)
     INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - \
@@ -54,13 +54,13 @@ class GPT_Function_Calling_CommandExecutor():
 
 
     async def get_web_search_result(self, query):
-        """Web検索を実行する、Function Calling用実装"""
+        """Web検索を実行する、Function Calling用実装 (100件固定)"""
         search_results = []
         from duckduckgo_search import DDGS
         with DDGS() as ddgs:
-            for r in ddgs.text(query, region='wt-wt', safesearch='on', timelimit='y', max_results=10):
+            for r in ddgs.text(query, region='wt-wt', safesearch='on', timelimit='y', max_results=100):  # 100件で取得
                 search_results.append(r)
-                if len(search_results) >= 10:
+                if len(search_results) >= 100: # 100件で打ち切り
                     break
         return {
             "search_results": search_results,
@@ -68,7 +68,7 @@ class GPT_Function_Calling_CommandExecutor():
         }
 
     def get_slack_search_result(self, query, client):
-        """Slack検索を実行する、Function Calling用実装"""
+        """Slack検索を実行する、Function Calling用実装 (100件固定)"""
         search_response = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                                  query=query, count=100, highlight=False)
 
@@ -127,7 +127,7 @@ class GPT_Function_Calling_CommandExecutor():
         # ChatCompletionを呼び出す
         logger.info(f"user: {message['user']}, prompt: {prompt}")
         response = self.client_openai.chat.completions.create(
-            model="gpt-3.5-turbo-16k-0613",
+            model="gpt-4o-mini",
             messages=history_array,
             top_p=1,
             n=1,
@@ -216,7 +216,7 @@ class GPT_Function_Calling_CommandExecutor():
 
             # ChatCompletionを呼び出す
             response = self.client_openai.chat.completions.create(
-                model="gpt-3.5-turbo-16k-0613",
+                model="gpt-4o-mini",
                 messages=history_array,
                 top_p=1,
                 n=1,

@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-MAX_TOKEN_SIZE = 16384  # トークンの最大サイズ
+MAX_TOKEN_SIZE = 128000  # トークンの最大サイズ
 COMPLETION_MAX_TOKEN_SIZE = 4096  # ChatCompletionの出力の最大トークンサイズ
 INPUT_MAX_TOKEN_SIZE = MAX_TOKEN_SIZE - COMPLETION_MAX_TOKEN_SIZE  # ChatCompletionの入力に使うトークンサイズ
 
@@ -25,8 +25,8 @@ def say_user_analysis(client_openai, client, message, say, using_user, target_us
     message_count = 0
     is_full = False
 
-    # 入力トークンサイズまで何度も検索して、直近のパブリックチャンネルの発言を取得する
-    while not is_full and search_page <= total_page:
+    # 入力トークンサイズまで10ページ目まで何度も検索して、直近のパブリックチャンネルの発言を取得する
+    while not is_full and search_page <= total_page and search_page <= 10:
         logger.info(f"<@{using_user}> さんの {target_user} さんについての {search_page} / {total_page} 回目の検索を開始します。")
         searchResponse = client.search_messages(token=os.getenv("SLACK_USER_TOKEN"),
                                                 query=f"from:{target_user}", page=search_page, count=100, highlight=False)
@@ -42,8 +42,8 @@ def say_user_analysis(client_openai, client, message, say, using_user, target_us
     投稿内容: {match["text"]}
                 """
 
-                # 入力トークンサイズ以下なら、promptに追加する、そうでないなら is_full を True にする
-                if calculate_num_tokens_by_prompt(prompt + formated_message) < INPUT_MAX_TOKEN_SIZE:
+                # 入力トークンサイズ以下またはならメッセージ100以下、promptに追加する、そうでないなら is_full を True にする
+                if (calculate_num_tokens_by_prompt(prompt + formated_message) < INPUT_MAX_TOKEN_SIZE) or message_count <= 100:
                     message_count += 1
                     prompt += formated_message
                 else:
@@ -62,7 +62,7 @@ def say_user_analysis(client_openai, client, message, say, using_user, target_us
     # ChatCompletionを呼び出す
     logger.debug(f"prompt: `{prompt}`")
     chat_gpt_response = client_openai.chat.completions.create(
-        model="gpt-3.5-turbo-16k",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         top_p=1,
         n=1,

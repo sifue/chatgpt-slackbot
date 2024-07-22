@@ -4,7 +4,7 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 会話の履歴数はトークン数に応じて最大まで保持。ユーザーごと、チャンネルごとに異なる履歴を保持する。
 環境構築にはOpenAIのAPIトークンとSlackのBoltのアプリケーショントークン3種が必要。  
 ユーザーを過去の発言から分析したり、Web検索の結果やワークスペースの結果を加味して質問に答えることもできる。  
-基本的には、 `gpt-3.5-turbo-16k` のモデルを利用している。 `!gpt` コマンドは、内部的にFunction Callingを使っており「Web検索をして～して」または「Slack検索をして～して」と伝えることで検索結果を考慮した受け答えができる。 
+基本的には、 `gpt-4o-mini` のモデルを利用している。 `!gpt` コマンドは、内部的にFunction Callingを使っており「Web検索をして～して」または「Slack検索をして～して」と伝えることで検索結果を考慮した受け答えができる。 
 
 ## ボットの使い方
 - AI(ChatGPT)との会話: !gpt \[会話内容\]  
@@ -23,7 +23,7 @@ Slackを通じて会話人工知能のChatGPTを利用するためのBOTスク�
 
 ## 環境構築
 ### OpenAIのAPI Token(SECRET KEY)とOrganazation IDを取得。
-[OpenAI API Keys](https://beta.openai.com/account/api-keys)にアクセスしてアカウント作成の後、SECRET KEYとOrganization IDを取得。
+[OpenAI API Keys](https://beta.openai.com/account/api-keys)にアクセスしてアカウント作成の後、SECRET KEYを取得。
 
 ### Slack Botのトークンの用意
 [Bolt 入門ガイド](https://slack.dev/bolt-python/ja-jp/tutorial/getting-started)に準拠。
